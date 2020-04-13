@@ -1,0 +1,2 @@
+recursive-include mozilla_session_invalidation/templates *
+recursive-include mozilla_session_invalidation/static *
