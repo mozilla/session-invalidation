@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+import typing as types
 
 
 class SupportedReliantParties(Enum):
@@ -11,7 +12,7 @@ class SupportedReliantParties(Enum):
     SSO = 'sso'
 
 
-class TermintionState(Enum):
+class TerminationState(Enum):
     '''The states that a job can enter for a given RP.  If recoverable errors
     are encountered or the server wishes to provide useful output to the client,
     then the `NOT_MODIFIED` state is presented.  Once sessions tied to an
@@ -34,7 +35,7 @@ class JobManager:
     job_id: str
     ws_session_id: str
     oauth_token: str
-    rp_states: types.Dict[SupportedReliantParties, TermintionState]
+    rp_states: types.Dict[SupportedReliantParties, TerminationState]
 
     def new(jid: str, sid: str, oauth_tkn: str) -> 'JobManager':
         '''Construct a new `JobManager` that will track states for all
@@ -42,7 +43,7 @@ class JobManager:
         '''
 
         states = {
-            SupportedReliantParties.SSO: TermintionState.NOT_MODIFIED,
+            SupportedReliantParties.SSO: TerminationState.NOT_MODIFIED,
         }
 
         return JobManager(jid, sid, oauth_tkn, states)

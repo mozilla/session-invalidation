@@ -1,13 +1,19 @@
+VENV_DIR := $(HOME)/.pyenv/versions/session-invalidation
+
 all: run
 
 clean:
-	rm -rf venv && rm -rf *.egg-info && rm -rf dist && rm -rf *.log*
+	rm -rf $(VENV_DIR) && rm -rf *.egg-info && rm -rf dist && rm -rf *.log*
 
 venv:
-	virtualenv --python=python3 venv && venv/bin/python setup.py develop
+	./setup-pyenv.sh
+	python setup.py develop
 
-run: venv
-	FLASK_APP=mozilla_session_invalidation MOZILLA_SESSION_INVALIDATION_SETTINGS=../settings.cfg venv/bin/flask run
+requirements: venv
+	pip install -r requirements.txt
+
+run: requirements
+	MOZILLA_SESSION_INVALIDATION_SETTINGS=../settings.cfg python mozilla_session_invalidation/main.py
 
 test: venv
 	MOZILLA_SESSION_INVALIDATION_SETTINGS=../settings.cfg venv/bin/python -m unittest discover -s tests
