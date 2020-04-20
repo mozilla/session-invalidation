@@ -33,11 +33,10 @@ class JobManager:
     '''
 
     job_id: str
-    ws_session_id: str
     oauth_token: str
     rp_states: types.Dict[SupportedReliantParties, TerminationState]
 
-    def new(jid: str, sid: str, oauth_tkn: str) -> 'JobManager':
+    def new(jid: str, oauth_tkn: str) -> 'JobManager':
         '''Construct a new `JobManager` that will track states for all
         supported reliant parties.
         '''
@@ -46,4 +45,4 @@ class JobManager:
             SupportedReliantParties.SSO: TerminationState.NOT_MODIFIED,
         }
 
-        return JobManager(jid, sid, oauth_tkn, states)
+        return JobManager(jid, oauth_tkn, states)

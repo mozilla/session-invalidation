@@ -1,6 +1,5 @@
 (function () {
   const TERMINATE_ENDPT = '/terminate'
-  const WEBSOCKET_ADDR = 'ws://127.0.0.1:5000'
 
   // Handles to document elements that contain inputs and outputs.
   const usernameInput = document.getElementById('username')
@@ -17,18 +16,6 @@
   const STATE_ERROR = 'error'
 
 
-  // Initialize websocket connection to server used for communicating requests
-  // to terminate sessions and receive updates about RP session states.
-  const websocket = new WebSocket(WEBSOCKET_ADDR)
-
-  websocket.addEventListener('open', function (evt) {
-    console.log('Websocket connected. Event: ', evt)
-  })
-
-  websocket.addEventListener('message', function (evt) {
-    console.log('Websocket got message: ', evt)
-  })
-  
   terminateButton.addEventListener('click', function (evt) {
     fetch(TERMINATE_ENDPT, {
       method: 'POST',

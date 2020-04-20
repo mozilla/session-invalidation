@@ -1,6 +1,6 @@
 import os
 
-from mozilla_session_invalidation import app, socketio
+from mozilla_session_invalidation import app
 
 
 def main():
@@ -15,7 +15,7 @@ def main():
 
     import mozilla_session_invalidation.views
 
-    socketio.run(app)
+    app.run()
 
 
 if __name__ == '__main__':
