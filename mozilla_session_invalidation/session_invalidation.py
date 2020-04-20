@@ -23,26 +23,3 @@ class TerminationState(Enum):
     NOT_MODIFIED = 'not_modified'
     TERMINATED = 'terminated'
     ERROR = 'error'
-
-
-@dataclass
-class JobManager:
-    '''The jobs handled by the session invalidation tool do not require any
-    long-running processes and so jobs tied to client sessions are maintained
-    in memory.
-    '''
-
-    job_id: str
-    oauth_token: str
-    rp_states: types.Dict[SupportedReliantParties, TerminationState]
-
-    def new(jid: str, oauth_tkn: str) -> 'JobManager':
-        '''Construct a new `JobManager` that will track states for all
-        supported reliant parties.
-        '''
-
-        states = {
-            SupportedReliantParties.SSO: TerminationState.NOT_MODIFIED,
-        }
-
-        return JobManager(jid, oauth_tkn, states)

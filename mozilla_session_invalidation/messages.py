@@ -9,23 +9,15 @@ from mozilla_session_invalidation.session_invalidation import\
 
 
 @dataclass
-class JobCreated:
-    job_id: str
-    target_rps: types.Dict[SupportedReliantParties, TerminationState]
+class Error:
+    error: str
 
     def to_json(self) -> dict:
-        return {
-            'jobId': self.job_id,
-            'targetRPs': {
-                rp_name.value: state.value
-                for rp_name, state in self.target_rps.items()
-            },
-        }
+        return {'error': self.error}
 
 
 @dataclass
-class JobStatusUpdate:
-    job_id: str
+class Status:
     affected_rp: SupportedReliantParties
     current_state: TerminationState
     output: types.Optional[str]
@@ -33,7 +25,6 @@ class JobStatusUpdate:
 
     def to_json(self) -> dict:
         return {
-            'jobId': self.job_id,
             'affectedRP': self.affected_rp.value,
             'currentState': self.current_state.value,
             'output': self.output,
@@ -42,10 +33,10 @@ class JobStatusUpdate:
 
 
 @dataclass
-class JobComplete:
-    job_id: str
+class Result:
+    results: types.List[Status]
 
     def to_json(self) -> dict:
         return {
-            'jobId': self.job_id,
+            'results': [result.to_json() for result in self.results],
         }
