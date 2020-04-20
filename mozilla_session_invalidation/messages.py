@@ -8,17 +8,6 @@ from mozilla_session_invalidation.session_invalidation import\
     TerminationState
 
 
-class WSMessage(Enum):
-    '''Enumerates the identifiers of websocket messages communicated to a
-    client.  Each value corresponds to a similarly named dataclass that
-    contains a `to_json` method for easy conversion.
-    '''
-
-    JOB_ID_CREATED = 'job_id_created'
-    JOB_STATUS_UPDATE = 'job_status_update'
-    JOB_COMPLETE = 'job_complete'
-
-
 @dataclass
 class JobCreated:
     job_id: str
