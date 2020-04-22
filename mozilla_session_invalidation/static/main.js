@@ -1,5 +1,6 @@
 (function () {
   const TERMINATE_ENDPT = '/terminate'
+  const STATUS_ENDPT = '/status'
   const STATUS_UPDATE_INTERVAL = 500
 
   // Handles to document elements that contain inputs and outputs.
@@ -51,18 +52,18 @@
    * to a termination job and update the `outputsList`.
    */
   const statusUpdate = function (jobId) {
-    let calls = 0
-
     return function () {
-      calls += 1
+      fetch(`${STATUS_ENDPT}?jobId=${jobId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        const newItem = document.createElement('li')
 
-      const newItem = document.createElement('li')
+        const content = document.createTextNode(JSON.stringify(data))
 
-      const content = document.createTextNode('Calls: ' + calls)
+        newItem.appendChild(content)
 
-      newItem.appendChild(content)
-
-      outputsList.appendChild(newItem)
+        outputsList.appendChild(newItem)
+      })
     }
   }
 
