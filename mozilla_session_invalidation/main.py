@@ -15,6 +15,8 @@ def main():
 
     import mozilla_session_invalidation.views
 
+    app.secret_key = os.environ['SECRET_KEY']
+
     app.run()
 
 
