@@ -30,7 +30,7 @@ def terminate():
     # TODO:  Retrieve OAuth credentials from request cookies.
     oauth_tkn = ''
 
-    return msgs.Result([]).to_json()
+    return msgs.NewJob(session.job_id).to_json()
 
 
 @app.route('/status')
