@@ -10,3 +10,14 @@ body {
   display: block;
 }
 
+li[data-state=not_modified] {
+  background-color: gray;
+}
+
+li[data-state=terminated] {
+  background-color: green;
+}
+
+li[data-state=error] {
+  background-color: red;
+}
