@@ -7,28 +7,42 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
   </head>
   <body>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <div id="main">
       <div>
         <h1>Mozilla Session Invalidation</h1>
       </div>
-      <div>
-        <input id="username" name="username" placeholder="username@mozilla.com" type="text" />
-        <input id="terminate" type="button" value="Terminate" />
-      </div>
-      <div>
-        <!-- Updated dynamically -->
-        <ul id="reliantparties">
-          <li id="rp-sso" data-state="not_modified">
-            SSO
-          </li>
-        </ul>
-      </div>
-      <div>
-        <!-- Populated dynamically -->
-        <ul id="outputs">
-        </ul>
+      <div id="application">
+        <Application greeting="Hello, world!"></Application>
+        <div>
+          <input id="username" name="username" placeholder="username@mozilla.com" type="text" />
+          <input id="terminate" type="button" value="Terminate" />
+        </div>
+        <div>
+          <!-- Updated dynamically -->
+          <ul id="reliantparties">
+            <li id="rp-sso" data-state="not_modified">
+              SSO
+            </li>
+          </ul>
+        </div>
+        <div>
+          <!-- Populated dynamically -->
+          <ul id="outputs">
+          </ul>
+        </div>
       </div>
     </div>
+  <script>
+    /*
+    const application = new Vue({
+      el: '#application',
+      data: {
+        greeting: 'Hello, world!'
+      }
+    })
+    */
+  </script>
   <script src="{{ url_for('static', filename='main.js') }}" type="application/javascript"></script>
   </body>
 </html>
