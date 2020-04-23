@@ -1,13 +1,36 @@
 body {
   font-size: 20px;
+  font-family: 'Zilla Slab', serif;
+}
+
+#main {
+  width: 60%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #username {
   display: block;
+  line-height: 1.5em;
+  font-size: 1.1em;
+  height: 32px;
+  width: 100%;
+  margin: 16px 0px;
+  padding-left: 16px;
 }
 
 #terminate {
   display: block;
+  margin-left: auto;
+  margin-right: auto;
+  min-height: 46px;
+  min-width: 120px;
+  border: none;
+  background-color: #e1dcda;
+}
+
+#terminate:active {
+  background-color: #d3d2d1;
 }
 
 li[data-state=not_modified] {

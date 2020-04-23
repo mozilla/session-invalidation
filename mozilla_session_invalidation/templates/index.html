@@ -3,18 +3,18 @@
   <head>
     <meta charset="utf-8">
     <title>Mozilla Session Invalidation</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
   </head>
   <body>
     <div id="main">
       <div>
         <h1>Mozilla Session Invalidation</h1>
       </div>
-      </div>
-        <input id="username" name="username" placeholder="username@mozilla.com" type="text" />
-        <button id="terminate">Terminate</button>
-      </form>
       <div>
+        <input id="username" name="username" placeholder="username@mozilla.com" type="text" />
+        <input id="terminate" type="button" value="Terminate" />
+      </div>
       <div>
         <!-- Updated dynamically -->
         <ul id="reliantparties">
