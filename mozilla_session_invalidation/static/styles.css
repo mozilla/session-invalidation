@@ -3,6 +3,32 @@ body {
   font-family: 'Zilla Slab', serif;
 }
 
+table {
+  border-collapse: collapse;
+}
+
+tr {
+  border: solid black;
+  border-width: 1px 0;
+}
+
+tr:first-child {
+  border-top: none;
+}
+
+tr:last-child {
+  border-bottom: none;
+}
+
+th, td {
+  padding: 4px 16px;
+}
+
+td {
+  font-size: 14px;
+  text-align: center;
+}
+
 #main {
   width: 60%;
   margin-left: auto;
@@ -27,20 +53,14 @@ body {
   min-width: 120px;
   border: none;
   background-color: #e1dcda;
+  font-weight: 600;
+  font-size: 16px;
 }
 
 #terminate:active {
   background-color: #d3d2d1;
 }
 
-li[data-state=not_modified] {
-  background-color: gray;
-}
-
-li[data-state=terminated] {
-  background-color: green;
-}
-
-li[data-state=error] {
-  background-color: red;
+#results {
+  margin-top: 32px;
 }

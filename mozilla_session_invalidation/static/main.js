@@ -1,16 +1,102 @@
-const Application = {
-  props: [
-    'greeting',
-  ],
+const TerminationForm = {
+  name: 'TerminationForm',
   template: `
-    <p>{{ greeting }}</p>
+    <div>
+      <input v-model="username" id="username" placeholder="username@mozilla.com" type="text" />
+      <input v-on:click="submitJob" id="terminate" value="Terminate" type="button" />
+    </div>
   `,
+  data: () => ({
+    username: '',
+  }),
+  methods: {
+    submitJob() {
+      alert('Submitted')
+    }
+  }
+}
+
+const TerminationResults = {
+  name: 'TerminationResults',
+  template: `
+    <table id="results">
+      <tr>
+        <th>Username</th>
+        <th>SSO</th>
+        <th>GSuite</th>
+        <th>Slack</th>
+        <th>AWS</th>
+        <th>GCP</th>
+      </tr>
+      <tr v-for="state in userStates">
+        <td>{{ state.username }}</td>
+        <td>
+          {{ state.ssoState }}
+        </td>
+        <td>
+          {{ state.gsuiteState }}
+        </td>
+        <td>
+          {{ state.slackState }}
+        </td>
+        <td>
+          {{ state.awsState }}
+        </td>
+        <td>
+          {{ state.gcpState }}
+        </td>
+      </tr>
+    </table>
+  `,
+  data: () => ({
+    userStates: [
+      {
+        username: 'tester@mozilla.com',
+        ssoState: 'Terminated',
+        gsuiteState: 'Not implemented',
+        slackState: 'Not implemented',
+        awsState: 'Not implemented',
+        gcpState: 'Not implemented',
+      },
+      {
+        username: 'another@mozilla.com',
+        ssoState: 'Not modified',
+        gsuiteState: 'Not implemented',
+        slackState: 'Not implemented',
+        awsState: 'Not implemented',
+        gcpState: 'Not implemented',
+      },
+    ]
+  }),
+}
+
+const StatusMessageList = {
+  name: 'StatusMessageList',
+  template: `
+    <ul id="outputs">
+    </ul>
+  `,
+}
+
+const Application = {
+  template: `
+    <div>
+      <TerminationForm></TerminationForm>
+      <TerminationResults></TerminationResults>
+      <StatusMessageList></StatusMessageList>
+    </div>
+  `,
+  components: {
+    TerminationForm,
+    TerminationResults,
+    StatusMessageList,
+  }
 }
 
 const application = new Vue({
   el: '#application',
   components: {
-    'application': Application,
+    Application,
   }
 })
 
