@@ -21,6 +21,18 @@
 
   // Utility functions.
   
+  const finishedUpdating = function () {
+    let finished = true
+
+    for (rpName in reliantParties) {
+      const state = reliantParties[rpName].getAttribute('data-state')
+
+      finished = finished && (state === STATE_TERMINATED)
+    }
+
+    return finished
+  }
+  
   const addOutputItem = function (message, className) {
     const newItem = document.createElement('li')
 
@@ -64,31 +76,37 @@
       }),
     })
     .then((response) => response.json())
-    .then((data) =>
-      setInterval(statusUpdate(data['jobId']), STATUS_UPDATE_INTERVAL))
+    .then((data) => {
+      const intervalId = setInterval(
+        () => statusUpdate(data['jobId'], intervalId),
+        STATUS_UPDATE_INTERVAL)
+    })
   }
 
   /**
-   * Construct a closure for a `setInterval` function that will retrieve updates
-   * to a termination job and update the `outputsList`.
+   * Retrieve updates to the statuses of termination jobs.
    */
-  const statusUpdate = function (jobId) {
-    return function () {
-      fetch(`${STATUS_ENDPT}?jobId=${jobId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        for (const result of data.results) {
-          updateStatusView(result['affectedRP'], result['currentState'])
+  const statusUpdate = function (jobId, intervalId) {
+    if (finishedUpdating()) {
+      clearInterval(intervalId)
 
-          if (result['output'] !== null) {
-            output(result['output'])
-          }
-          if (result['error'] !== null) {
-            error(result['error'])
-          }
-        }
-      })
+      return
     }
+
+    fetch(`${STATUS_ENDPT}?jobId=${jobId}`)
+    .then((response) => response.json())
+    .then((data) => {
+      for (const result of data.results) {
+        updateStatusView(result['affectedRP'], result['currentState'])
+
+        if (result['output'] !== null) {
+          output(result['output'])
+        }
+        if (result['error'] !== null) {
+          error(result['error'])
+        }
+      }
+    })
   }
 
   // Event registration.
