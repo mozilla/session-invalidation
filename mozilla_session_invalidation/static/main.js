@@ -54,8 +54,6 @@
   }
 
   const updateStatusView = function (affectedRP, currentState) {
-    console.log(reliantParties)
-    console.log(affectedRP)
     reliantParties[affectedRP].setAttribute('data-state', currentState)
   }
 
