@@ -69,14 +69,18 @@ td.username {
   font-weight: 600;
 }
 
-span[data-state="Terminated"] {
+span[data-state="terminated"] {
   color: green;
 }
 
-span[data-state="Not modified"] {
+span[data-state="error"] {
+  color: red;
+}
+
+span[data-state="not_modified"] {
   color: black;
 }
 
-span[data-state="Not implemented"] {
+span[data-state="not_implemented"] {
   color: gray;
 }

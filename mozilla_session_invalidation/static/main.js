@@ -1,3 +1,22 @@
+const TERMINATE_ENDPT = '/terminate'
+const STATUS_ENDPT = '/status'
+const STATUS_UPDATE_INTERVAL = 500
+
+
+const STATE_NOT_MODIFIED = 'not_modified'
+const STATE_TERMINATED = 'terminated'
+const STATE_ERROR = 'error'
+const STATE_NOT_IMPLEMENTED = 'not_implemented'
+
+
+const STATE_REPRESENTATIONS = {
+  [STATE_NOT_MODIFIED]: 'Not modified',
+  [STATE_TERMINATED]: 'Terminated',
+  [STATE_ERROR]: 'Error',
+  [STATE_NOT_IMPLEMENTED]: 'Not implemented',
+}
+
+
 const TerminationForm = {
   name: 'TerminationForm',
   template: `
@@ -11,7 +30,7 @@ const TerminationForm = {
   }),
   methods: {
     submitJob() {
-      alert('Submitted')
+      this.$root.$emit('TerminateRequestSent', this.username)
     }
   }
 }
@@ -34,27 +53,27 @@ const TerminationResults = {
         </td>
         <td>
           <span v-bind:data-state="state.ssoState">
-            {{ state.ssoState }}
+            {{ representation(state.ssoState) }}
           </span>
         </td>
         <td>
           <span v-bind:data-state="state.gsuiteState">
-            {{ state.gsuiteState }}
+            {{ representation(state.gsuiteState) }}
           </span>
         </td>
         <td>
           <span v-bind:data-state="state.slackState">
-            {{ state.slackState }}
+            {{ representation(state.slackState) }}
           </span>
         </td>
         <td>
           <span v-bind:data-state="state.awsState">
-            {{ state.awsState }}
+            {{ representation(state.awsState) }}
           </span>
         </td>
         <td>
           <span v-bind:data-state="state.gcpState">
-            {{ state.gcpState }}
+            {{ representation(state.gcpState) }}
           </span>
         </td>
       </tr>
@@ -63,23 +82,63 @@ const TerminationResults = {
   data: () => ({
     userStates: [
       {
+        jobId: '',
         username: 'tester@mozilla.com',
-        ssoState: 'Terminated',
-        gsuiteState: 'Not implemented',
-        slackState: 'Not implemented',
-        awsState: 'Not implemented',
-        gcpState: 'Not implemented',
+        ssoState: STATE_TERMINATED,
+        gsuiteState: STATE_NOT_IMPLEMENTED,
+        slackState: STATE_NOT_IMPLEMENTED,
+        awsState: STATE_NOT_IMPLEMENTED,
+        gcpState: STATE_NOT_IMPLEMENTED,
       },
       {
+        jobId: '',
         username: 'another@mozilla.com',
-        ssoState: 'Not modified',
-        gsuiteState: 'Not implemented',
-        slackState: 'Not implemented',
-        awsState: 'Not implemented',
-        gcpState: 'Not implemented',
+        ssoState: STATE_NOT_MODIFIED,
+        gsuiteState: STATE_NOT_IMPLEMENTED,
+        slackState: STATE_NOT_IMPLEMENTED,
+        awsState: STATE_NOT_IMPLEMENTED,
+        gcpState: STATE_NOT_IMPLEMENTED,
       },
     ]
   }),
+  methods: {
+    finishedUpdating(jobId) {
+      const finished = (state) => true
+
+      const job = this.userStates.find((state) => state.jobId === jobId)
+
+      return (typeof job !== 'undefined') &&
+        finished(job.ssoState) &&
+        finished(job.gsuiteState) &&
+        finished(job.slackState) &&
+        finished(job.awsState) &&
+        finished(job.gcpState)
+    },
+    representation(state) {
+      return STATE_REPRESENTATIONS[state]
+    },
+  },
+  mounted() {
+    this.$root.$on('TerminateJobCreated', (username, jsonData) => {
+      this.userStates.push({
+        jobId: jsonData['jobId'],
+        username: username,
+        ssoState: STATE_REPRESENTATIONS[STATE_NOT_MODIFIED],
+        gsuiteState: 'Not implemented',
+        slackState: 'Not implemented',
+        awsState: 'Not implemented',
+        gcpState: 'Not implemented',
+      })
+
+      const intervalId = setInterval(() => {
+        if (this.finishedUpdating(jsonData['jobId'])) {
+          clearInterval(intervalId)
+        } else {
+          this.$root.$emit('RequestStatusUpdate', jsonData['jobId'])
+        }
+      }, STATUS_UPDATE_INTERVAL)
+    })
+  }
 }
 
 const StatusMessageList = {
@@ -102,7 +161,22 @@ const Application = {
     TerminationForm,
     TerminationResults,
     StatusMessageList,
-  }
+  },
+  mounted() {
+    this.$root.$on('TerminateRequestSent', (username) => {
+      fetch(TERMINATE_ENDPT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username,
+        }),
+      })
+      .then((response) => response.json())
+      .then((data) => this.$root.$emit('TerminateJobCreated', username, data))
+    })
+  },
 }
 
 const application = new Vue({
@@ -114,8 +188,6 @@ const application = new Vue({
 
 //(function () {
 //  const TERMINATE_ENDPT = '/terminate'
-//  const STATUS_ENDPT = '/status'
-//  const STATUS_UPDATE_INTERVAL = 500
 //  
 //  // Constant reliant party identifiers.
 //  const RP_SSO = 'sso'
@@ -129,9 +201,6 @@ const application = new Vue({
 //  }
 //
 //  // Constant state name representations.
-//  const STATE_NOT_MODIFIED = 'not_modified'
-//  const STATE_TERMINATED = 'terminated'
-//  const STATE_ERROR = 'error'
 //
 //  // Utility functions.
 //  
@@ -178,21 +247,6 @@ const application = new Vue({
 //   * function to run in an interval to retrieve status updates.
 //   */
 //  const sendTerminateRequest = function (evt) {
-//    fetch(TERMINATE_ENDPT, {
-//      method: 'POST',
-//      headers: {
-//        'Content-Type': 'application/json',
-//      },
-//      body: JSON.stringify({
-//        username: usernameInput.value,
-//      }),
-//    })
-//    .then((response) => response.json())
-//    .then((data) => {
-//      const intervalId = setInterval(
-//        () => statusUpdate(data['jobId'], intervalId),
-//        STATUS_UPDATE_INTERVAL)
-//    })
 //  }
 //
 //  /**
