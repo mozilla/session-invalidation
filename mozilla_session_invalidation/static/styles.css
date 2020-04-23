@@ -64,3 +64,19 @@ td {
 #results {
   margin-top: 32px;
 }
+
+td.username {
+  font-weight: 600;
+}
+
+span[data-state="Terminated"] {
+  color: green;
+}
+
+span[data-state="Not modified"] {
+  color: black;
+}
+
+span[data-state="Not implemented"] {
+  color: gray;
+}

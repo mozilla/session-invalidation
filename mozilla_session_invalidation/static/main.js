@@ -29,21 +29,33 @@ const TerminationResults = {
         <th>GCP</th>
       </tr>
       <tr v-for="state in userStates">
-        <td>{{ state.username }}</td>
-        <td>
-          {{ state.ssoState }}
+        <td class="username">
+          {{ state.username }}
         </td>
         <td>
-          {{ state.gsuiteState }}
+          <span v-bind:data-state="state.ssoState">
+            {{ state.ssoState }}
+          </span>
         </td>
         <td>
-          {{ state.slackState }}
+          <span v-bind:data-state="state.gsuiteState">
+            {{ state.gsuiteState }}
+          </span>
         </td>
         <td>
-          {{ state.awsState }}
+          <span v-bind:data-state="state.slackState">
+            {{ state.slackState }}
+          </span>
         </td>
         <td>
-          {{ state.gcpState }}
+          <span v-bind:data-state="state.awsState">
+            {{ state.awsState }}
+          </span>
+        </td>
+        <td>
+          <span v-bind:data-state="state.gcpState">
+            {{ state.gcpState }}
+          </span>
         </td>
       </tr>
     </table>
