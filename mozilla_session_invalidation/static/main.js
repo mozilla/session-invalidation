@@ -103,7 +103,7 @@ const TerminationResults = {
   }),
   methods: {
     finishedUpdating(jobId) {
-      const finished = (state) => true
+      const finished = (state) => state !== STATE_NOT_MODIFIED
 
       const job = this.userStates.find((state) => state.jobId === jobId)
 
@@ -124,10 +124,10 @@ const TerminationResults = {
         jobId: jsonData['jobId'],
         username: username,
         ssoState: STATE_REPRESENTATIONS[STATE_NOT_MODIFIED],
-        gsuiteState: 'Not implemented',
-        slackState: 'Not implemented',
-        awsState: 'Not implemented',
-        gcpState: 'Not implemented',
+        gsuiteState: STATE_NOT_IMPLEMENTED,
+        slackState: STATE_NOT_IMPLEMENTED,
+        awsState: STATE_NOT_IMPLEMENTED,
+        gcpState: STATE_NOT_IMPLEMENTED,
       })
 
       const intervalId = setInterval(() => {
