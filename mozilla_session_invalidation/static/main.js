@@ -3,6 +3,12 @@ const STATUS_ENDPT = '/status'
 const STATUS_UPDATE_INTERVAL = 500
 
 
+const RP_SSO = 'sso'
+const RP_GSUITE = 'gsuite'
+const RP_SLACK = 'slack'
+const RP_AWS = 'aws'
+const RP_GCP = 'gcp'
+
 const STATE_NOT_MODIFIED = 'not_modified'
 const STATE_TERMINATED = 'terminated'
 const STATE_ERROR = 'error'
@@ -123,7 +129,7 @@ const TerminationResults = {
       this.userStates.push({
         jobId: jsonData['jobId'],
         username: username,
-        ssoState: STATE_REPRESENTATIONS[STATE_NOT_MODIFIED],
+        ssoState: STATE_NOT_MODIFIED,
         gsuiteState: STATE_NOT_IMPLEMENTED,
         slackState: STATE_NOT_IMPLEMENTED,
         awsState: STATE_NOT_IMPLEMENTED,
@@ -137,6 +143,31 @@ const TerminationResults = {
           this.$root.$emit('RequestStatusUpdate', jsonData['jobId'])
         }
       }, STATUS_UPDATE_INTERVAL)
+    })
+
+    this.$root.$on('ApplyStatusUpdate', (jobId, jsonData) => {
+      const job = this.userStates.find((state) => state.jobId === jobId)
+
+      if (typeof job === 'undefined') {
+        console.log(`Got an update for invalid job ${jobId}`)
+        return
+      }
+
+      for (const result of jsonData['results']) {
+        if (result['affectedRP'] === RP_SSO) {
+          job.ssoState = result['currentState']
+        } else if (result['affectedRP'] === RP_GSUITE) {
+          job.gsuiteState = result['currentState']
+        } else if (result['affectedRP'] === RP_SLACK) {
+          job.slackState = result['currentState']
+        } else if (result['affectedRP'] === RP_AWS) {
+          job.awsState = result['currentState']
+        } else if (result['affectedRP'] === RP_GCP) {
+          job.gcpState = result['currentState']
+        }
+      }
+
+      // TODO : write outputs
     })
   }
 }
@@ -176,6 +207,12 @@ const Application = {
       .then((response) => response.json())
       .then((data) => this.$root.$emit('TerminateJobCreated', username, data))
     })
+
+    this.$root.$on('RequestStatusUpdate', (jobId) => {
+      fetch(`${STATUS_ENDPT}?jobId=${jobId}`)
+      .then((response) => response.json())
+      .then((data) => this.$root.$emit('ApplyStatusUpdate', jobId, data))
+    })
   },
 }
 
@@ -185,97 +222,3 @@ const application = new Vue({
     Application,
   }
 })
-
-//(function () {
-//  const TERMINATE_ENDPT = '/terminate'
-//  
-//  // Constant reliant party identifiers.
-//  const RP_SSO = 'sso'
-//
-//  // Handles to document elements that contain inputs and outputs.
-//  const usernameInput = document.getElementById('username')
-//  const terminateButton = document.getElementById('terminate')
-//  const outputsList = document.getElementById('outputs')
-//  const reliantParties = {
-//    [RP_SSO]: document.getElementById(`rp-${RP_SSO}`),
-//  }
-//
-//  // Constant state name representations.
-//
-//  // Utility functions.
-//  
-//  const finishedUpdating = function () {
-//    let finished = true
-//
-//    for (rpName in reliantParties) {
-//      const state = reliantParties[rpName].getAttribute('data-state')
-//
-//      finished = finished && (state === STATE_TERMINATED)
-//    }
-//
-//    return finished
-//  }
-//  
-//  const addOutputItem = function (message, className) {
-//    const newItem = document.createElement('li')
-//
-//    const content = document.createTextNode(message)
-//
-//    newItem.classList.add(className)
-//
-//    newItem.appendChild(content)
-//
-//    outputsList.appendChild(newItem)
-//  }
-//  
-//  const output = function (message) {
-//    addOutputItem(message, 'output')
-//  }
-//
-//  const error = function (message) {
-//    addOutputItem(message, 'error')
-//  }
-//
-//  const updateStatusView = function (affectedRP, currentState) {
-//    reliantParties[affectedRP].setAttribute('data-state', currentState)
-//  }
-//
-//  // Event handlers.  Each is registered at the end of the function.
-// 
-//  /**
-//   * Initiate a request to terminate a session for a user and register a
-//   * function to run in an interval to retrieve status updates.
-//   */
-//  const sendTerminateRequest = function (evt) {
-//  }
-//
-//  /**
-//   * Retrieve updates to the statuses of termination jobs.
-//   */
-//  const statusUpdate = function (jobId, intervalId) {
-//    if (finishedUpdating()) {
-//      clearInterval(intervalId)
-//
-//      return
-//    }
-//
-//    fetch(`${STATUS_ENDPT}?jobId=${jobId}`)
-//    .then((response) => response.json())
-//    .then((data) => {
-//      for (const result of data.results) {
-//        updateStatusView(result['affectedRP'], result['currentState'])
-//
-//        if (result['output'] !== null) {
-//          output(result['output'])
-//        }
-//        if (result['error'] !== null) {
-//          error(result['error'])
-//        }
-//      }
-//    })
-//  }
-//
-//  // Event registration.
-//
-//  terminateButton.addEventListener('click', sendTerminateRequest)
-//})

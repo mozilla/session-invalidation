@@ -10,6 +10,10 @@ class SupportedReliantParties(Enum):
     '''
 
     SSO = 'sso'
+    GSUITE = 'gsuite'
+    SLACK = 'slack'
+    AWS = 'aws'
+    GCP = 'gcp'
 
 
 class TerminationState(Enum):
