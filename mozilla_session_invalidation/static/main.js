@@ -86,26 +86,18 @@ const TerminationResults = {
     </table>
   `,
   data: () => ({
-    userStates: [
-      {
-        jobId: '',
-        username: 'tester@mozilla.com',
-        ssoState: STATE_TERMINATED,
-        gsuiteState: STATE_NOT_IMPLEMENTED,
-        slackState: STATE_NOT_IMPLEMENTED,
-        awsState: STATE_NOT_IMPLEMENTED,
-        gcpState: STATE_NOT_IMPLEMENTED,
-      },
-      {
-        jobId: '',
-        username: 'another@mozilla.com',
-        ssoState: STATE_NOT_MODIFIED,
-        gsuiteState: STATE_NOT_IMPLEMENTED,
-        slackState: STATE_NOT_IMPLEMENTED,
-        awsState: STATE_NOT_IMPLEMENTED,
-        gcpState: STATE_NOT_IMPLEMENTED,
-      },
-    ]
+    /* States take the following shape:
+     * {
+     *   jobId: string,
+     *   username: string,
+     *   ssoState: string, // One of STATE_*
+     *   gsuiteState: string,
+     *   slackState: string,
+     *   awsState: string,
+     *   gcpState: string,
+     * }
+     */
+    userStates: [],
   }),
   methods: {
     finishedUpdating(jobId) {
