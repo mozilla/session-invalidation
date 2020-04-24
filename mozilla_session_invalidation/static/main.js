@@ -1,5 +1,4 @@
 const TERMINATE_ENDPT = '/terminate'
-const STATUS_ENDPT = '/status'
 const STATUS_UPDATE_INTERVAL = 500
 
 
@@ -88,7 +87,6 @@ const TerminationResults = {
   data: () => ({
     /* States take the following shape:
      * {
-     *   jobId: string,
      *   username: string,
      *   ssoState: string, // One of STATE_*
      *   gsuiteState: string,
@@ -100,49 +98,19 @@ const TerminationResults = {
     userStates: [],
   }),
   methods: {
-    finishedUpdating(jobId) {
-      const finished = (state) => state !== STATE_NOT_MODIFIED
-
-      const job = this.userStates.find((state) => state.jobId === jobId)
-
-      return (typeof job !== 'undefined') &&
-        finished(job.ssoState) &&
-        finished(job.gsuiteState) &&
-        finished(job.slackState) &&
-        finished(job.awsState) &&
-        finished(job.gcpState)
-    },
     representation(state) {
       return STATE_REPRESENTATIONS[state]
     },
   },
   mounted() {
-    this.$root.$on('TerminateJobCreated', (username, jsonData) => {
-      this.userStates.push({
-        jobId: jsonData['jobId'],
+    this.$root.$on('TerminationComplete', (username, jsonData) => {
+      let job = {
         username: username,
         ssoState: STATE_NOT_MODIFIED,
         gsuiteState: STATE_NOT_IMPLEMENTED,
         slackState: STATE_NOT_IMPLEMENTED,
         awsState: STATE_NOT_IMPLEMENTED,
         gcpState: STATE_NOT_IMPLEMENTED,
-      })
-
-      const intervalId = setInterval(() => {
-        if (this.finishedUpdating(jsonData['jobId'])) {
-          clearInterval(intervalId)
-        } else {
-          this.$root.$emit('RequestStatusUpdate', jsonData['jobId'])
-        }
-      }, STATUS_UPDATE_INTERVAL)
-    })
-
-    this.$root.$on('ApplyStatusUpdate', (jobId, jsonData) => {
-      const job = this.userStates.find((state) => state.jobId === jobId)
-
-      if (typeof job === 'undefined') {
-        console.log(`Got an update for invalid job ${jobId}`)
-        return
       }
 
       for (const result of jsonData['results']) {
@@ -159,7 +127,9 @@ const TerminationResults = {
         }
       }
 
-      // TODO : write outputs
+      this.userStates.push(job)
+
+      // TODO : write outputs and errors
     })
   }
 }
@@ -197,13 +167,7 @@ const Application = {
         }),
       })
       .then((response) => response.json())
-      .then((data) => this.$root.$emit('TerminateJobCreated', username, data))
-    })
-
-    this.$root.$on('RequestStatusUpdate', (jobId) => {
-      fetch(`${STATUS_ENDPT}?jobId=${jobId}`)
-      .then((response) => response.json())
-      .then((data) => this.$root.$emit('ApplyStatusUpdate', jobId, data))
+      .then((data) => this.$root.$emit('TerminationComplete', username, data))
     })
   },
 }

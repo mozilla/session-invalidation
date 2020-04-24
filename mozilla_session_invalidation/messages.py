@@ -17,14 +17,6 @@ class Error:
 
 
 @dataclass
-class NewJob:
-    job_id: str
-
-    def to_json(self) -> dict:
-        return {'jobId': self.job_id}
-
-
-@dataclass
 class Status:
     affected_rp: SupportedReliantParties
     current_state: TerminationState
