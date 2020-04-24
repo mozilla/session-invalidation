@@ -61,12 +61,30 @@ td {
   background-color: #d3d2d1;
 }
 
+td.username {
+  font-weight: 600;
+}
+
 #results {
   margin-top: 32px;
 }
 
-td.username {
-  font-weight: 600;
+#outputs {
+  padding-left: 0;
+  list-style: none;
+}
+
+#outputs li {
+  padding: 8px 16px;
+  margin: 8px 0px;
+}
+
+li.output {
+  background-color: #fdfdb2;
+}
+
+li.error {
+  background-color: #fdbbbb;
 }
 
 span[data-state="terminated"] {

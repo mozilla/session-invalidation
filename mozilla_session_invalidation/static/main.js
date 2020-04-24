@@ -125,11 +125,16 @@ const TerminationResults = {
         } else if (result['affectedRP'] === RP_GCP) {
           job.gcpState = result['currentState']
         }
+
+        if (result['output'] !== null) {
+          this.$root.$emit('GotOutput', {'output': result['output']})
+        }
+        if (result['error'] !== null) {
+          this.$root.$emit('GotOutput', {'error': result['error']})
+        }
       }
 
       this.userStates.push(job)
-
-      // TODO : write outputs and errors
     })
   }
 }
@@ -137,9 +142,35 @@ const TerminationResults = {
 const StatusMessageList = {
   name: 'StatusMessageList',
   template: `
-    <ul id="outputs">
-    </ul>
+    <div>
+      <h2>Outputs</h2>
+      <ul id="outputs">
+        <li v-for="error in errors" class="error">
+          {{ error }}
+        </li>
+        <li v-for="output in outputs" class="output">
+          {{ output }}
+        </li>
+      </ul>
+    </div>
   `,
+  data: () => ({
+    outputs: [],
+    errors: [],
+  }),
+  mounted() {
+    this.$root.$on('GotOutput', (output) => {
+      const out = output['output']
+      const err = output['error']
+
+      if (typeof out !== 'undefined') {
+        this.outputs.push(out)
+      }
+      if (typeof err !== 'undefined') {
+        this.errors.push(err)
+      }
+    })
+  },
 }
 
 const Application = {

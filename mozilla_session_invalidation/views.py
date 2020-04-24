@@ -24,7 +24,7 @@ def terminate():
         msgs.Status(
             affected_rp=SupportedReliantParties.SSO,
             current_state=TerminationState.TERMINATED,
-            output=None,
-            error=None,
+            output='Test output',
+            error='Test error',
         ),
     ]).to_json()
