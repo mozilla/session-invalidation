@@ -107,10 +107,10 @@ const TerminationResults = {
       let job = {
         username: username,
         ssoState: STATE_NOT_MODIFIED,
-        gsuiteState: STATE_NOT_IMPLEMENTED,
-        slackState: STATE_NOT_IMPLEMENTED,
-        awsState: STATE_NOT_IMPLEMENTED,
-        gcpState: STATE_NOT_IMPLEMENTED,
+        gsuiteState: STATE_NOT_MODIFIED,
+        slackState: STATE_NOT_MODIFIED,
+        awsState: STATE_NOT_MODIFIED,
+        gcpState: STATE_NOT_MODIFIED,
       }
 
       const error = jsonData['error']

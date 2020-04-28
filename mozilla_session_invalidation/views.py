@@ -18,6 +18,13 @@ def terminate():
     # TODO:  Retrieve OAuth credentials from request cookies.
     oauth_tkn = ''
 
+    # TODO: Retrieve AWS credentials from config.
+    access_key_id = ''
+    secret_key = ''
+
+    # TODO: Figure out what we even need for GCP.
+    gcp_token = ''
+
     try:
         username = request.json.get('username')
     except Exception:
@@ -26,7 +33,7 @@ def terminate():
     if username is None:
         return msgs.Error('Missing `username` field').to_json()
 
-    jobs = _configure_jobs(oauth_tkn)
+    jobs = _configure_jobs(oauth_tkn, access_key_id, secret_key, gcp_token)
 
     results = []
 
@@ -50,13 +57,13 @@ def _configure_jobs(
     gcp_token: str,
 ) -> types.Dict[sesinv.SupportedReliantParties, sesinv.IJob]:
     sso = sesinv.terminate_sso(sesinv.TerminateSSOConfig(oauth_token))
-    gsuite = sesinv.terminate_gsuite(sesinv.TerminateGSuiteConfig(oauth_tkn))
-    slack = sesinv.terminate_slack(sesinv.TerminateSlackConfig(oauth_tkn))
+    gsuite = sesinv.terminate_gsuite(sesinv.TerminateGSuiteConfig(oauth_token))
+    slack = sesinv.terminate_slack(sesinv.TerminateSlackConfig(oauth_token))
     aws = sesinv.terminate_aws(sesinv.TerminateAWSConfig(
         aws_access_key_id,
         aws_secret_key,
     ))
-    gcp = sesinv.terminate_gcp(sesinv.TerminateGCPConfig(gcp_tokne))
+    gcp = sesinv.terminate_gcp(sesinv.TerminateGCPConfig(gcp_token))
 
     return {
         sesinv.SupportedReliantParties.SSO: sso,
