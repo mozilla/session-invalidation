@@ -27,6 +27,7 @@ class TerminationState(Enum):
     NOT_MODIFIED = 'not_modified'
     TERMINATED = 'terminated'
     ERROR = 'error'
+    NOT_IMPLEMENTED = 'not_implemented'
 
 
 @dataclass
@@ -64,5 +65,78 @@ def terminate_sso(cfg: TerminateSSOConfig) -> IJob:
 
     def _terminate(email: UserEmail) -> JobResult:
         return JobResult(TerminationState.TERMINATED)
+
+    return _terminate
+
+
+@dataclass
+class TerminateGSuiteConfig:
+    '''
+    '''
+
+    bearer_token: str
+
+
+def terminate_gsuite(cfg: TerminateGSuiteConfig) -> IJob:
+    '''
+    '''
+
+    def _terminate(email: UserEmail) -> JobResult:
+        return JobResult(TerminationState.NOT_IMPLEMENTED)
+
+    return _terminate
+
+
+@dataclass
+class TerminateSlackConfig:
+    '''
+    '''
+
+    bearer_token: str
+
+
+def terminate_slack(cfg: TerminateSlackConfig) -> IJob:
+    '''
+    '''
+
+    def _terminate(email: UserEmail) -> JobResult:
+        return JobResult(TerminationState.NOT_IMPLEMENTED)
+
+    return _terminate
+
+
+@dataclass
+class TerminateAWSConfig:
+    '''
+    '''
+
+    access_key_id: str
+    secret_key: str
+
+
+def terminate_aws(cfg: TerminateAWSConfig) -> IJob:
+    '''
+    '''
+
+    def _terminate(email: UserEmail) -> JobResult:
+        return JobResult(TerminationState.NOT_IMPLEMENTED)
+
+    return _terminate
+
+
+@dataclass
+class TerminateGCPConfig:
+    '''
+    '''
+
+    token: str
+
+
+def terminate_gcp(cfg: TerminateGCPConfig) -> IJob:
+    '''
+    '''
+
+    def _terminate(email: UserEmail) -> JobResult:
+        return JobResult(TerminationState.NOT_IMPLEMENTED)
 
     return _terminate
