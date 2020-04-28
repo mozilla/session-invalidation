@@ -113,6 +113,13 @@ const TerminationResults = {
         gcpState: STATE_NOT_IMPLEMENTED,
       }
 
+      const error = jsonData['error']
+
+      if (typeof error !== 'undefined' && error !== null) {
+        this.$root.$emit('GotOutput', {error})
+        return
+      }
+
       for (const result of jsonData['results']) {
         if (result['affectedRP'] === RP_SSO) {
           job.ssoState = result['currentState']

@@ -19,7 +19,7 @@ def terminate():
     oauth_tkn = ''
 
     try:
-        username = request.json().get('username')
+        username = request.json.get('username')
     except Exception:
         return msgs.Error('Invalid request').to_json()
 
