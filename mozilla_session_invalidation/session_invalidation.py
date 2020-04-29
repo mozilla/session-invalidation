@@ -51,15 +51,7 @@ UserEmail = str
 IJob = types.Callable[[UserEmail], JobResult]
 
 
-@dataclass
-class TerminateSSOConfig:
-    '''The configuration required to terminate an SSO session.
-    '''
-
-    bearer_token: str
-
-
-def terminate_sso(cfg: TerminateSSOConfig) -> IJob:
+def terminate_sso(bearer_token: str) -> IJob:
     '''Configure a job interface to terminate an SSO session.
     '''
 
@@ -69,15 +61,7 @@ def terminate_sso(cfg: TerminateSSOConfig) -> IJob:
     return _terminate
 
 
-@dataclass
-class TerminateGSuiteConfig:
-    '''
-    '''
-
-    bearer_token: str
-
-
-def terminate_gsuite(cfg: TerminateGSuiteConfig) -> IJob:
+def terminate_gsuite(bearer_token: str) -> IJob:
     '''
     '''
 
@@ -87,15 +71,7 @@ def terminate_gsuite(cfg: TerminateGSuiteConfig) -> IJob:
     return _terminate
 
 
-@dataclass
-class TerminateSlackConfig:
-    '''
-    '''
-
-    bearer_token: str
-
-
-def terminate_slack(cfg: TerminateSlackConfig) -> IJob:
+def terminate_slack(oauth_token: str) -> IJob:
     '''
     '''
 
@@ -105,16 +81,7 @@ def terminate_slack(cfg: TerminateSlackConfig) -> IJob:
     return _terminate
 
 
-@dataclass
-class TerminateAWSConfig:
-    '''
-    '''
-
-    access_key_id: str
-    secret_key: str
-
-
-def terminate_aws(cfg: TerminateAWSConfig) -> IJob:
+def terminate_aws(acces_key_id: str, secret_key: str) -> IJob:
     '''
     '''
 
@@ -124,15 +91,7 @@ def terminate_aws(cfg: TerminateAWSConfig) -> IJob:
     return _terminate
 
 
-@dataclass
-class TerminateGCPConfig:
-    '''
-    '''
-
-    token: str
-
-
-def terminate_gcp(cfg: TerminateGCPConfig) -> IJob:
+def terminate_gcp(token: str) -> IJob:
     '''
     '''
 

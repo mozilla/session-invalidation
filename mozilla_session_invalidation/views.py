@@ -56,14 +56,11 @@ def _configure_jobs(
     aws_secret_key: str,
     gcp_token: str,
 ) -> types.Dict[sesinv.SupportedReliantParties, sesinv.IJob]:
-    sso = sesinv.terminate_sso(sesinv.TerminateSSOConfig(oauth_token))
-    gsuite = sesinv.terminate_gsuite(sesinv.TerminateGSuiteConfig(oauth_token))
-    slack = sesinv.terminate_slack(sesinv.TerminateSlackConfig(oauth_token))
-    aws = sesinv.terminate_aws(sesinv.TerminateAWSConfig(
-        aws_access_key_id,
-        aws_secret_key,
-    ))
-    gcp = sesinv.terminate_gcp(sesinv.TerminateGCPConfig(gcp_token))
+    sso = sesinv.terminate_sso(oauth_token)
+    gsuite = sesinv.terminate_gsuite(oauth_token)
+    slack = sesinv.terminate_slack(oauth_token)
+    aws = sesinv.terminate_aws(aws_access_key_id, aws_secret_key)
+    gcp = sesinv.terminate_gcp(gcp_token)
 
     return {
         sesinv.SupportedReliantParties.SSO: sso,
