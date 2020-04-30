@@ -1,0 +1,16 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create infrastructure required to run the Session Invalidation application in EC2
+Parameters:
+  KeyPair:
+    Type: String
+    Description: An EC2 keypair to allow SSH access to the instance
+Resources:
+  Ec2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: !Ref KeyPair
+      ImageId: ami-003634241a8fcdec0
+Outputs:
+  InstanceId:
+    Description: The ID of the newly-created EC2 instance
+    Value: !Ref Ec2Instance
