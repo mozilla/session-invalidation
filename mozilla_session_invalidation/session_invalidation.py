@@ -143,12 +143,64 @@ def terminate_gsuite(bearer_token: str, endpt: str) -> IJob:
     return _terminate
 
 
-def terminate_slack(oauth_token: str) -> IJob:
-    '''
+def terminate_slack(bearer_token: str, endpt: str) -> IJob:
+    '''Configure a job interface to terminate a Slack session.
+
+    The `bearer_token` parameter is expected to be an OAuth token with the
+    **admin** scope required to invoke the SCIM API for managing users.
+    https://api.slack.com/scim#users
+
+    The `endpt` parameter is expected to be a string containing the URL
+    of the user SCIM API endpoint, e.g. `"https://api.slack.com/scim/v1/Users"`
     '''
 
     def _terminate(email: UserEmail) -> JobResult:
-        return JobResult(TerminationState.NOT_IMPLEMENTED)
+        headers = {
+            'Authorization': 'Bearer {}'.format(bearer_token),
+        }
+
+        err_msg = 'Failed to terminate session for {}'.format(email)
+
+        try:
+            response1 = requests.patch(url, headers=headers, json={
+                'schemas': [
+                    'urn:scim:schemas:core:1.0',
+                ],
+                'active': False,
+            })
+            response2 = requests.patch(url, headers=headers, json={
+                'schemas': [
+                    'urn:scim:schemas:core:1.0',
+                ],
+                'active': True,
+            })
+        except Exeption:
+            return JobResult(
+                TerminationState.ERROR,
+                error=err_msg,
+            )
+
+        if response1.status_code >= 300:
+            err_add = 'Could not deactive: Status {}'.format(
+                response1.status_code,
+            )
+
+            return JobResult(
+                TerminationState.ERROR,
+                error='{}: {}'.format(err_msg, err_add),
+            )
+        
+        if response2.status_code >= 300:
+            err_add = 'Could not deactive: Status {}'.format(
+                response2.status_code,
+            )
+
+            return JobResult(
+                TerminationState.ERROR,
+                error='{}: {}'.format(err_msg, err_add),
+            )
+
+        return JobResult(TerminationState.TERMINATED)
 
     return _terminate
 
