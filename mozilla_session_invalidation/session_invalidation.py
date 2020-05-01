@@ -120,10 +120,10 @@ def terminate_gsuite(bearer_token: str, endpt: str) -> IJob:
             # Toggling the `changePasswordAtNextLogin` field has the effect of
             # forcing a login without actually requiring a password change.
             # https://stackoverflow.com/questions/52934817/reset-the-login-cookie-by-api
-            response = requests.patch(url, headers=headers, json={
+            response1 = requests.patch(url, headers=headers, json={
                 'changePasswordAtNextLogin': True,
             })
-            response = requests.patch(url, headers=headers, json={
+            response2 = requests.patch(url, headers=headers, json={
                 'changePasswordAtNextLogin': False,
             })
         except Exception:
@@ -132,10 +132,16 @@ def terminate_gsuite(bearer_token: str, endpt: str) -> IJob:
                 error=err_msg,
             )
 
-        if response.status_code != 200:
+        if response1.status_code != 200:
             return JobResult(
                 TerminationState.ERROR,
-                error='{}: Status {}'.format(err_msg, response.status_code),
+                error='{}: Status {}'.format(err_msg, response1.status_code),
+            )
+
+        if response2.status_code != 200:
+            return JobResult(
+                TerminationState.ERROR,
+                error='{}: Status {}'.format(err_msg, response2.status_code),
             )
 
         return JobResult(TerminationState.TERMINATED)
