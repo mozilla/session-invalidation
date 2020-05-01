@@ -197,12 +197,17 @@ def terminate_slack(bearer_token: str, endpt: str) -> IJob:
             )
         
         if response2.status_code >= 300:
-            err_add = 'Could not deactive: Status {}'.format(
+            err_add = 'Could not reactivate: Status {}'.format(
                 response2.status_code,
             )
 
+            out = 'The Slack account owned by {} has been '.format(email)
+            'deactivated. Be sure to have a Slack admin reactivate the '
+            'account within five (5) days.'
+
             return JobResult(
                 TerminationState.ERROR,
+                output=out,
                 error='{}: {}'.format(err_msg, err_add),
             )
 
