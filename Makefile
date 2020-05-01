@@ -19,7 +19,7 @@ run: requirements
 	MOZILLA_SESSION_INVALIDATION_SETTINGS=../settings.cfg python mozilla_session_invalidation/main.py
 
 test: requirements-test
-	MOZILLA_SESSION_INVALIDATION_SETTINGS=../settings.cfg venv/bin/python -m unittest discover -s tests
+	MOZILLA_SESSION_INVALIDATION_SETTINGS=../settings.cfg python -m unittest discover -s tests
 
 sdist: venv test
 	venv/bin/python setup.py sdist
