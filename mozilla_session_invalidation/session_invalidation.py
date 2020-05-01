@@ -75,7 +75,7 @@ def terminate_sso(bearer_token: str, endpt: str) -> IJob:
             'Authorization': 'Bearer {}'.format(bearer_token),
         }
         
-        err_msg = 'Failed to terminate session for {}'.format(email)
+        err_msg = 'Failed to terminate SSO session for {}'.format(email)
 
         try:
             response = requests.post(invalidate_url, headers=headers)
@@ -114,7 +114,7 @@ def terminate_gsuite(bearer_token: str, endpt: str) -> IJob:
             'Authorization': 'Bearer {}'.format(bearer_token),
         }
 
-        err_msg = 'Failed to terminate session for {}'.format(email)
+        err_msg = 'Failed to GSuite terminate session for {}'.format(email)
 
         try:
             # Toggling the `changePasswordAtNextLogin` field has the effect of
@@ -165,7 +165,7 @@ def terminate_slack(bearer_token: str, endpt: str) -> IJob:
             'Authorization': 'Bearer {}'.format(bearer_token),
         }
 
-        err_msg = 'Failed to terminate session for {}'.format(email)
+        err_msg = 'Failed to terminate Slack session for {}'.format(email)
 
         try:
             response1 = requests.patch(endpt, headers=headers, json={
