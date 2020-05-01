@@ -114,7 +114,7 @@ def terminate_gsuite(bearer_token: str, endpt: str) -> IJob:
             'Authorization': 'Bearer {}'.format(bearer_token),
         }
 
-        err_msg = 'Failed to GSuite terminate session for {}'.format(email)
+        err_msg = 'Failed to terminate GSuite session for {}'.format(email)
 
         try:
             # Toggling the `changePasswordAtNextLogin` field has the effect of
