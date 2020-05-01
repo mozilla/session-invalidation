@@ -12,10 +12,13 @@ venv:
 requirements: venv
 	pip install -r requirements.txt
 
+requirements-test: venv
+	pip install -r requirements-test.txt
+
 run: requirements
 	MOZILLA_SESSION_INVALIDATION_SETTINGS=../settings.cfg python mozilla_session_invalidation/main.py
 
-test: venv
+test: requirements-test
 	MOZILLA_SESSION_INVALIDATION_SETTINGS=../settings.cfg venv/bin/python -m unittest discover -s tests
 
 sdist: venv test
