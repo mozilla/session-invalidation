@@ -96,12 +96,49 @@ def terminate_sso(bearer_token: str, endpt: str) -> IJob:
     return _terminate
 
 
-def terminate_gsuite(bearer_token: str) -> IJob:
-    '''
+def terminate_gsuite(bearer_token: str, endpt: str) -> IJob:
+    '''Configure a job interface to terminate a GSuite session.
+
+    The `bearer_token` parameter is expected to be an OAuth token with the
+    **admin.directory.user** scope required to update a user profile.
+
+    The `endpt` parameter is expected to be a format string containing the URL
+    of the user management GSuite endpoint, e.g.
+    `"https://www.googleapis.com/admin/directory/v1/users/{}"`.
     '''
 
     def _terminate(email: UserEmail) -> JobResult:
-        return JobResult(TerminationState.NOT_IMPLEMENTED)
+        url = endpt.format(email)
+
+        headers = {
+            'Authorization': 'Bearer {}'.format(bearer_token),
+        }
+
+        err_msg = 'Failed to terminate session for {}'.format(email)
+
+        try:
+            # Toggling the `changePasswordAtNextLogin` field has the effect of
+            # forcing a login without actually requiring a password change.
+            # https://stackoverflow.com/questions/52934817/reset-the-login-cookie-by-api
+            response = requests.patch(url, headers=headers, json={
+                'changePasswordAtNextLogin': True,
+            })
+            response = requests.patch(url, headers=headers, json={
+                'changePasswordAtNextLogin': False,
+            })
+        except Exception:
+            return JobResult(
+                TerminationState.ERROR,
+                error=err_msg,
+            )
+
+        if response.status_code != 200:
+            return JobResult(
+                TerminationState.ERROR,
+                error='{}: Status {}'.format(err_msg, response.status_code),
+            )
+
+        return JobResult(TerminationState.TERMINATED)
 
     return _terminate
 
