@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 import typing as types
 
+import requests
+
 
 class SupportedReliantParties(Enum):
     '''Enumerates the identifiers of reliant parties (RPs) shared between
@@ -51,11 +53,44 @@ UserEmail = str
 IJob = types.Callable[[UserEmail], JobResult]
 
 
-def terminate_sso(bearer_token: str) -> IJob:
+def terminate_sso(bearer_token: str, endpt: str) -> IJob:
     '''Configure a job interface to terminate an SSO session.
+
+    The `bearer_token` parameter is expected to be an OAuth token with the
+    **update:users** scope required to terminate a user's session.
+
+    The `endpt` parameter is expected to be a format string containing the URL
+    of the **invalidate-remember-browser** OAuth endpoint, e.g.
+    `"https://site.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser"`
     '''
 
     def _terminate(email: UserEmail) -> JobResult:
+        username = email.split('@')[0]
+
+        user_id = 'ad%7CMozilla-LDAP%7c{}'.format(username)
+
+        invalidate_url = endpt.format(user_id)
+
+        headers = {
+            'Authorization': 'Bearer {}'.format(bearer_token),
+        }
+        
+        err_msg = 'Failed to terminate session for {}'.format(email)
+
+        try:
+            response = requests.post(invalidate_url, headers=headers)
+        except Exception as ex:
+            return JobResult(
+                TerminationState.ERROR,
+                error='{}: {}'.format(err_msg, ex.message),
+            )
+
+        if response.status_code >= 300:
+            return JobResult(
+                TerminationState.ERROR,
+                error='{}: Status {}'.format(err_msg, response.status_code),
+            )
+
         return JobResult(TerminationState.TERMINATED)
 
     return _terminate
