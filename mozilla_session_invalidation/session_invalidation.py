@@ -162,19 +162,19 @@ def terminate_slack(bearer_token: str, endpt: str) -> IJob:
         err_msg = 'Failed to terminate session for {}'.format(email)
 
         try:
-            response1 = requests.patch(url, headers=headers, json={
+            response1 = requests.patch(endpt, headers=headers, json={
                 'schemas': [
                     'urn:scim:schemas:core:1.0',
                 ],
                 'active': False,
             })
-            response2 = requests.patch(url, headers=headers, json={
+            response2 = requests.patch(endpt, headers=headers, json={
                 'schemas': [
                     'urn:scim:schemas:core:1.0',
                 ],
                 'active': True,
             })
-        except Exeption:
+        except Exception as ex:
             return JobResult(
                 TerminationState.ERROR,
                 error=err_msg,
