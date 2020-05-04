@@ -124,9 +124,14 @@ def terminate_gsuite(bearer_token: str, endpt: str) -> IJob:
             response1 = requests.patch(url, headers=headers, json={
                 'changePasswordAtNextLogin': True,
             })
+
+            resp1_json = response1.json()
+
             response2 = requests.patch(url, headers=headers, json={
                 'changePasswordAtNextLogin': False,
             })
+            
+            resp2_json = response2.json()
         except Exception:
             return JobResult(
                 TerminationState.ERROR,
@@ -136,13 +141,21 @@ def terminate_gsuite(bearer_token: str, endpt: str) -> IJob:
         if response1.status_code != 200:
             return JobResult(
                 TerminationState.ERROR,
-                error='{}: Status {}'.format(err_msg, response1.status_code),
+                error='{}: Status {}: Error: {}'.format(
+                    err_msg,
+                    response1.status_code,
+                    resp1_json['error']['message'],
+                ),
             )
 
         if response2.status_code != 200:
             return JobResult(
                 TerminationState.ERROR,
-                error='{}: Status {}'.format(err_msg, response2.status_code),
+                error='{}: Status {}: Error: {}'.format(
+                    err_msg,
+                    response2.status_code,
+                    resp2_json['error']['message'],
+                ),
             )
 
         return JobResult(TerminationState.TERMINATED)
@@ -227,7 +240,7 @@ def terminate_slack(
             )
 
         if response1.status_code >= 300 or not resp1_json['ok']:
-            err_add = 'Could not deactive: Status {}; Error: {}'.format(
+            err_add = 'Could not deactive: Status {}: Error: {}'.format(
                 response1.status_code,
                 resp1_json['error'],
             )
@@ -238,7 +251,7 @@ def terminate_slack(
             )
         
         if response2.status_code >= 300 or not resp2_json['ok']:
-            err_add = 'Could not reactivate: Status {}; Error: {}'.format(
+            err_add = 'Could not reactivate: Status {}: Error: {}'.format(
                 response2.status_code,
                 resp2_json['error'],
             )
