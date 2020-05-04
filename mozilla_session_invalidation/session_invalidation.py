@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 import typing as types
+import urllib.parse
 
 import requests
 
@@ -149,14 +150,22 @@ def terminate_gsuite(bearer_token: str, endpt: str) -> IJob:
     return _terminate
 
 
-def terminate_slack(bearer_token: str, endpt: str) -> IJob:
+def terminate_slack(
+    bearer_token: str,
+    email_endpt: str,
+    update_endpt: str,
+) -> IJob:
     '''Configure a job interface to terminate a Slack session.
 
     The `bearer_token` parameter is expected to be an OAuth token with the
     **admin** scope required to invoke the SCIM API for managing users.
     https://api.slack.com/scim#users
 
-    The `endpt` parameter is expected to be a string containing the URL
+    The `email_endpt` parameter is expected to be a string containing the URL
+    of the **lookupUserByEmail** endpoint, e.g.
+    `"https://slack.com/api/users.lookupByEmail"`.
+
+    The `update_endpt` parameter is expected to be a string containing the URL
     of the user SCIM API endpoint, e.g. `"https://api.slack.com/scim/v1/Users"`
     '''
 
@@ -166,15 +175,42 @@ def terminate_slack(bearer_token: str, endpt: str) -> IJob:
         }
 
         err_msg = 'Failed to terminate Slack session for {}'.format(email)
+            
+        email_lookup_url = '{}?{}'.format(
+            email_endpt,
+            urllib.parse.urlencode({'email': email_endpt})
+        )
 
         try:
-            response1 = requests.patch(endpt, headers=headers, json={
+            response = requests.get(email_lookup_url, headers=headers)
+
+            resp_json = response.json()
+        except Exception as ex:
+            return JobResult(
+                TerminationState.ERROR,
+                error='{}: Could not find user in Slack'.format(err_msg),
+            )
+
+        if not resp_json['ok']:
+            return JobResult(
+                TerminationState.ERROR,
+                error='{}: Error from slack: {}'.format(
+                    err_msg,
+                    resp_json['error']
+                ),
+            )
+
+        update_user = urllib.urlparse.urljoin(
+            update_endpt, resp_json['user']['id'])
+
+        try:
+            response1 = requests.patch(update_user, headers=headers, json={
                 'schemas': [
                     'urn:scim:schemas:core:1.0',
                 ],
                 'active': False,
             })
-            response2 = requests.patch(endpt, headers=headers, json={
+            response2 = requests.patch(update_user, headers=headers, json={
                 'schemas': [
                     'urn:scim:schemas:core:1.0',
                 ],

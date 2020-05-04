@@ -96,22 +96,66 @@ class TestSessionInvalidators(unittest.TestCase):
             assert result.error is None
             assert result.new_state == sesinv.TerminationState.TERMINATED
 
-    def test_terminate_slack_error_handling(self):
+    def test_terminate_slack_failed_user_lookup(self):
         with requests_mock.Mocker() as mock:
+            mock.patch(
+                'http://test.com/lookupuser?email=testuser%40mozilla.com',
+                json={
+                    'ok': False,
+                    'error': 'users_not_found',
+                },
+            )
+
             mock.patch(requests_mock.ANY, status_code=400)
 
             terminate = sesinv.terminate_slack(
                 'testtoken',
-                'http://test.com/endpoint',
+                'http://test.com/lookupuser',
+                'http://test.com/updateuser',
             )
 
             result = terminate('testuser@mozilla.com')
 
             history = mock.request_history
-            assert len(history) == 2
 
-            assert history[0].json()['active'] is False
-            assert history[1].json()['active'] is True
+            assert len(history) == 1
+            assert history[0].url.endswith('testuser%40mozilla.com')
+
+            assert result.error is not None
+            assert 'users_not_found' in result.error
+            assert result.new_state == sesinv.TerminationState.ERROR
+
+    def test_terminate_slack_error_handling(self):
+        with requests_mock.Mocker() as mock:
+            mock.patch(
+                'http://test.com/lookupuser?email=testuser%40mozilla.com',
+                status_code=200,
+                json={
+                    'ok': True,
+                    'user': {
+                        'id': 'testid123',
+                    },
+                },
+            )
+
+            mock.patch(
+                'http://test.com/updateuser/testid123',
+                status_code=400,
+            )
+
+            terminate = sesinv.terminate_slack(
+                'testtoken',
+                'http://test.com/lookupuser',
+                'http://test.com/updateuser',
+            )
+
+            result = terminate('testuser@mozilla.com')
+
+            history = mock.request_history
+            assert len(history) == 3
+
+            assert history[1].json()['active'] is False
+            assert history[2].json()['active'] is True
 
             assert result.error is not None
             assert 'Status 400' in result.error
@@ -119,20 +163,35 @@ class TestSessionInvalidators(unittest.TestCase):
 
     def test_terminate_slack_success_case(self):
         with requests_mock.Mocker() as mock:
-            mock.patch(requests_mock.ANY, status_code=200)
+            mock.patch(
+                'http://test.com/lookupuser?email=testuser%40mozilla.com',
+                status_code=200,
+                json={
+                    'ok': True,
+                    'user': {
+                        'id': 'testid123',
+                    },
+                },
+            )
+
+            mock.patch(
+                'http://test.com/updateuser/testid123',
+                status_code=204,
+            )
 
             terminate = sesinv.terminate_slack(
                 'testtoken',
-                'http://test.com/endpoint',
+                'http://test.com/lookupuser',
+                'http://test.com/updateuser',
             )
 
             result = terminate('testuser@mozilla.com')
 
             history = mock.request_history
-            assert len(history) == 2
+            assert len(history) == 3
 
-            assert history[0].json()['active'] is False
-            assert history[1].json()['active'] is True
+            assert history[1].json()['active'] is False
+            assert history[2].json()['active'] is True
 
             assert result.error is None
             assert result.new_state == sesinv.TerminationState.TERMINATED

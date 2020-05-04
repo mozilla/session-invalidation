@@ -10,6 +10,7 @@ import mozilla_session_invalidation.session_invalidation as sesinv
 # TODO : Move these into settings
 MOZ_OAUTH_ENDPT = 'https://auth.mozilla.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser'
 GSUITE_USERS_ENDPT = 'https://www.googleapis.com/admin/directory/v1/users/{}'
+SLACK_LOOKUP_USER_ENDPT = 'https://slack.com/api/users.lookupByEmail'
 SLACK_SCIM_USERS_ENDPT = 'https://api.slack.com/scim/v1/Users'
 
 @app.route('/')
@@ -63,7 +64,11 @@ def _configure_jobs(
 ) -> types.Dict[sesinv.SupportedReliantParties, sesinv.IJob]:
     sso = sesinv.terminate_sso(oauth_token, MOZ_OAUTH_ENDPT)
     gsuite = sesinv.terminate_gsuite(oauth_token, GSUITE_USERS_ENDPT)
-    slack = sesinv.terminate_slack(oauth_token, SLACK_SCIM_USERS_ENDPT)
+    slack = sesinv.terminate_slack(
+        oauth_token,
+        SLACK_LOOKUP_USER_ENDPT,
+        SLACK_SCIM_USERS_ENDPT,
+    )
     aws = sesinv.terminate_aws(aws_access_key_id, aws_secret_key)
     gcp = sesinv.terminate_gcp(gcp_token)
 
