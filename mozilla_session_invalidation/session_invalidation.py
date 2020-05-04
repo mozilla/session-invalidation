@@ -162,11 +162,12 @@ def terminate_slack(
     https://api.slack.com/scim#users
 
     The `email_endpt` parameter is expected to be a string containing the URL
-    of the **lookupUserByEmail** endpoint, e.g.
-    `"https://slack.com/api/users.lookupByEmail"`.
+    of the **lookupUserByEmail** endpoint.
+    e.g. `"https://slack.com/api/users.lookupByEmail"`.
 
     The `update_endpt` parameter is expected to be a string containing the URL
-    of the user SCIM API endpoint, e.g. `"https://api.slack.com/scim/v1/Users"`
+    of the user SCIM API endpoint. Note that this URL **must not** end in a
+    trailing `/`. E.g. `"https://api.slack.com/scim/v1/Users"`
     '''
 
     def _terminate(email: UserEmail) -> JobResult:
