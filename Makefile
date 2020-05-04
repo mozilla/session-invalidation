@@ -1,4 +1,5 @@
 VENV_DIR := $(HOME)/.pyenv/versions/session-invalidation
+SESSION_SECRET := $(shell openssl rand -base64 32)
 
 all: run
 
@@ -16,7 +17,7 @@ requirements-test: venv
 	pip install -r requirements-test.txt
 
 run: requirements
-	MOZILLA_SESSION_INVALIDATION_SETTINGS=../settings.cfg python mozilla_session_invalidation/main.py
+	@SECRET_KEY=$(SESSION_SECRET) MOZILLA_SESSION_INVALIDATION_SETTINGS=../settings.cfg python mozilla_session_invalidation/main.py
 
 test: requirements-test
 	MOZILLA_SESSION_INVALIDATION_SETTINGS=../settings.cfg python -m unittest discover -s tests
