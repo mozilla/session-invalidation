@@ -209,21 +209,27 @@ def terminate_slack(
                 ],
                 'active': False,
             })
+
+            resp1_json = response1.json()
+
             response2 = requests.patch(update_user, headers=headers, json={
                 'schemas': [
                     'urn:scim:schemas:core:1.0',
                 ],
                 'active': True,
             })
+
+            resp2_json = response2.json()
         except Exception as ex:
             return JobResult(
                 TerminationState.ERROR,
                 error=err_msg,
             )
 
-        if response1.status_code >= 300:
-            err_add = 'Could not deactive: Status {}'.format(
+        if response1.status_code >= 300 or not resp1_json['ok']:
+            err_add = 'Could not deactive: Status {}; Error: {}'.format(
                 response1.status_code,
+                resp1_json['error'],
             )
 
             return JobResult(
@@ -231,9 +237,10 @@ def terminate_slack(
                 error='{}: {}'.format(err_msg, err_add),
             )
         
-        if response2.status_code >= 300:
-            err_add = 'Could not reactivate: Status {}'.format(
+        if response2.status_code >= 300 or not resp2_json['ok']:
+            err_add = 'Could not reactivate: Status {}; Error: {}'.format(
                 response2.status_code,
+                resp2_json['error'],
             )
 
             out = 'The Slack account owned by {} has been '.format(email)
