@@ -30,12 +30,11 @@ def terminate():
         return msgs.Error('Missing `username` field').to_json()
 
     jobs = _configure_jobs(
-        '',
-        '',
-        app.config['SLACK_TOKEN'],
-        '',
-        '',
-        '',
+        sso_oauth_token='',
+        gsuite_oauth_token='',
+        slack_oauth_token=app.config['SLACK_TOKEN'],
+        aws_access_key_id='',
+        gcp_token='',
     )
 
     results = []
@@ -54,12 +53,12 @@ def terminate():
 
 
 def _configure_jobs(
-    sso_oauth_token: str,
-    gsuite_oauth_token: str,
-    slack_oauth_token: str,
-    aws_access_key_id: str,
-    aws_secret_key: str,
-    gcp_token: str,
+    sso_oauth_token: str = '',
+    gsuite_oauth_token: str = '',
+    slack_oauth_token: str = '',
+    aws_access_key_id: str = '',
+    aws_secret_key: str = '',
+    gcp_token: str = '',
 ) -> types.Dict[sesinv.SupportedReliantParties, sesinv.IJob]:
     sso = sesinv.terminate_sso(sso_oauth_token, MOZ_OAUTH_ENDPT)
     gsuite = sesinv.terminate_gsuite(gsuite_oauth_token, GSUITE_USERS_ENDPT)
