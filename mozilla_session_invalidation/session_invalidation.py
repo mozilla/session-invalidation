@@ -80,16 +80,22 @@ def terminate_sso(bearer_token: str, endpt: str) -> IJob:
 
         try:
             response = requests.post(invalidate_url, headers=headers)
-        except Exception:
+
+            resp_json = response.json()
+        except Exception as ex:
             return JobResult(
                 TerminationState.ERROR,
                 error=err_msg,
             )
 
-        if response.status_code >= 300:
+        if response.status_code >= 300 or resp_json.get('error') is not None:
             return JobResult(
                 TerminationState.ERROR,
-                error='{}: Status {}'.format(err_msg, response.status_code),
+                error='{}: Status {}: Error: {}'.format(
+                    err_msg,
+                    response.status_code,
+                    resp_json['message'],
+                ),
             )
 
         return JobResult(TerminationState.TERMINATED)
