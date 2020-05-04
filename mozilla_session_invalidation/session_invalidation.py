@@ -5,6 +5,8 @@ import urllib.parse
 
 import requests
 
+import mozilla_session_invalidation.authentication as auth
+
 
 class SupportedReliantParties(Enum):
     '''Enumerates the identifiers of reliant parties (RPs) shared between
@@ -103,7 +105,7 @@ def terminate_sso(bearer_token: str, endpt: str) -> IJob:
     return _terminate
 
 
-def terminate_gsuite(bearer_token: str, endpt: str) -> IJob:
+def terminate_gsuite(creds: auth.GSuiteCreds, endpt: str) -> IJob:
     '''Configure a job interface to terminate a GSuite session.
 
     The `bearer_token` parameter is expected to be an OAuth token with the
@@ -115,6 +117,16 @@ def terminate_gsuite(bearer_token: str, endpt: str) -> IJob:
     '''
 
     def _terminate(email: UserEmail) -> JobResult:
+        try:
+            bearer_token = creds.token()
+        except auth.Error as err:
+            return JobResult(
+                TerminationState.ERROR,
+                error='Failed to retrieve GSuite OAuth token: Error {}'.format(
+                    err.message,
+                ),
+            )
+
         url = endpt.format(email)
 
         headers = {

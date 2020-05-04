@@ -3,6 +3,7 @@ import typing as types
 from flask import render_template, request, session
 
 from mozilla_session_invalidation import app
+import mozilla_session_invalidation.authentication as auth
 import mozilla_session_invalidation.messages as msgs
 import mozilla_session_invalidation.session_invalidation as sesinv
 
@@ -29,9 +30,17 @@ def terminate():
     if username is None:
         return msgs.Error('Missing `username` field').to_json()
 
+    gsuite_creds = auth.GSuiteCreds(
+        client_id=app.config['GSUITE_CLIENT_ID'],
+        client_secret=app.config['GSUITE_CLIENT_SECRET'],
+        auth_url=app.config['GSUITE_AUTH_URL'],
+        audience=app.config['GSUITE_AUDIENCE'],
+        grant_type=app.config['GSUITE_GRANT_TYPE'],
+    )
+
     jobs = _configure_jobs(
         sso_oauth_token='',
-        gsuite_oauth_token='',
+        gsuite_creds=gsuite_creds,
         slack_oauth_token=app.config['SLACK_TOKEN'],
         aws_access_key_id='',
         gcp_token='',
@@ -54,14 +63,14 @@ def terminate():
 
 def _configure_jobs(
     sso_oauth_token: str = '',
-    gsuite_oauth_token: str = '',
+    gsuite_creds: types.Optional[auth.GSuiteCreds] = None,
     slack_oauth_token: str = '',
     aws_access_key_id: str = '',
     aws_secret_key: str = '',
     gcp_token: str = '',
 ) -> types.Dict[sesinv.SupportedReliantParties, sesinv.IJob]:
     sso = sesinv.terminate_sso(sso_oauth_token, MOZ_OAUTH_ENDPT)
-    gsuite = sesinv.terminate_gsuite(gsuite_oauth_token, GSUITE_USERS_ENDPT)
+    gsuite = sesinv.terminate_gsuite(gsuite_creds, GSUITE_USERS_ENDPT)
     slack = sesinv.terminate_slack(
         slack_oauth_token,
         SLACK_LOOKUP_USER_ENDPT,
