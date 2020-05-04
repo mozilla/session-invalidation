@@ -98,8 +98,9 @@ class TestSessionInvalidators(unittest.TestCase):
 
     def test_terminate_slack_failed_user_lookup(self):
         with requests_mock.Mocker() as mock:
-            mock.patch(
-                'http://test.com/lookupuser?email=testuser%40mozilla.com',
+            mock.post(
+                'http://test.com/lookupuser',
+                status_code=400,
                 json={
                     'ok': False,
                     'error': 'users_not_found',
@@ -119,7 +120,7 @@ class TestSessionInvalidators(unittest.TestCase):
             history = mock.request_history
 
             assert len(history) == 1
-            assert history[0].url.endswith('testuser%40mozilla.com')
+            assert history[0].text == 'email=testuser%40mozilla.com'
 
             assert result.error is not None
             assert 'users_not_found' in result.error
@@ -127,8 +128,8 @@ class TestSessionInvalidators(unittest.TestCase):
 
     def test_terminate_slack_error_handling(self):
         with requests_mock.Mocker() as mock:
-            mock.patch(
-                'http://test.com/lookupuser?email=testuser%40mozilla.com',
+            mock.post(
+                'http://test.com/lookupuser',
                 status_code=200,
                 json={
                     'ok': True,
@@ -163,9 +164,8 @@ class TestSessionInvalidators(unittest.TestCase):
 
     def test_terminate_slack_success_case(self):
         with requests_mock.Mocker() as mock:
-            mock.patch(
-                'http://test.com/lookupuser?email=testuser%40mozilla.com',
-                status_code=200,
+            mock.post(
+                'http://test.com/lookupuser',
                 json={
                     'ok': True,
                     'user': {

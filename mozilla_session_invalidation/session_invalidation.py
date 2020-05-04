@@ -176,13 +176,12 @@ def terminate_slack(
 
         err_msg = 'Failed to terminate Slack session for {}'.format(email)
             
-        email_lookup_url = '{}?{}'.format(
-            email_endpt,
-            urllib.parse.urlencode({'email': email_endpt})
-        )
-
         try:
-            response = requests.get(email_lookup_url, headers=headers)
+            response = requests.post(
+                email_endpt,
+                data={'email': email},
+                headers=headers,
+            )
 
             resp_json = response.json()
         except Exception as ex:
@@ -200,8 +199,7 @@ def terminate_slack(
                 ),
             )
 
-        update_user = urllib.urlparse.urljoin(
-            update_endpt, resp_json['user']['id'])
+        update_user = '{}/{}'.format(update_endpt, resp_json['user']['id'])
 
         try:
             response1 = requests.patch(update_user, headers=headers, json={
