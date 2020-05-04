@@ -33,7 +33,7 @@ class GSuiteCreds:
     _expires: types.Optional[datetime] = field(default=None)
 
     def token(self) -> str:
-        '''
+        '''Retrieve an access token with which to access the GSuite API.
         '''
 
         now = datetime.utcnow() 
