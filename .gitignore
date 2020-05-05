@@ -1,4 +1,9 @@
-# Byte-compiled / optimized / DLL files
+# FOR SECURITY PURPOSES SETTINGS.cfg IS IGNORED WHILE DEVELOPMENT TAKES PLACE
+# TO PREVENT SECURE TOKENS FROM BEING LEAKED
+settings.cfg
+
+
+## Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
