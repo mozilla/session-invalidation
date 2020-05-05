@@ -1,6 +1,6 @@
 import typing as types
 
-from flask import render_template, request, session
+from flask import g as flask_global, render_template, request, session
 
 from mozilla_session_invalidation import app
 import mozilla_session_invalidation.authentication as auth
@@ -9,7 +9,7 @@ import mozilla_session_invalidation.session_invalidation as sesinv
 
 
 # TODO : Move these into settings
-MOZ_OAUTH_ENDPT = 'https://auth.mozilla.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser'
+MOZ_OAUTH_ENDPT = 'https://auth-dev.mozilla.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser'
 GSUITE_USERS_ENDPT = 'https://www.googleapis.com/admin/directory/v1/users/{}'
 SLACK_LOOKUP_USER_ENDPT = 'https://slack.com/api/users.lookupByEmail'
 SLACK_SCIM_USERS_ENDPT = 'https://api.slack.com/scim/v1/Users'
@@ -30,17 +30,18 @@ def terminate():
     if username is None:
         return msgs.Error('Missing `username` field').to_json()
 
-    gsuite_creds = auth.GSuiteCreds(
-        client_id=app.config['GSUITE_CLIENT_ID'],
-        client_secret=app.config['GSUITE_CLIENT_SECRET'],
-        auth_url=app.config['GSUITE_AUTH_URL'],
-        audience=app.config['GSUITE_AUDIENCE'],
-        grant_type=app.config['GSUITE_GRANT_TYPE'],
-    )
+    sso_creds = flask_global.setdefault('sso_creds', auth.SSOCreds(
+        client_id=app.config['SSO_CLIENT_ID'],
+        client_secret=app.config['SSO_CLIENT_SECRET'],
+        auth_url=app.config['SSO_AUTH_URL'],
+        audience=app.config['SSO_AUDIENCE'],
+        grant_type=app.config['SSO_GRANT_TYPE'],
+    ))
 
     jobs = _configure_jobs(
-        sso_oauth_token='',
-        gsuite_creds=gsuite_creds,
+        sso_creds=sso_creds,
+        sso_id_fmt=app.config['SSO_ID_FORMAT'],
+        gsuite_oauth_token='',
         slack_oauth_token=app.config['SLACK_TOKEN'],
         aws_access_key_id='',
         gcp_token='',
@@ -62,21 +63,26 @@ def terminate():
 
 
 def _configure_jobs(
-    sso_oauth_token: str = '',
-    gsuite_creds: types.Optional[auth.GSuiteCreds] = None,
+    sso_creds: types.Optional[auth.SSOCreds] = None,
+    sso_id_fmt: str = '',
+    gsuite_oauth_token: str = '',
     slack_oauth_token: str = '',
     aws_access_key_id: str = '',
     aws_secret_key: str = '',
     gcp_token: str = '',
 ) -> types.Dict[sesinv.SupportedReliantParties, sesinv.IJob]:
-    sso = sesinv.terminate_sso(sso_oauth_token, MOZ_OAUTH_ENDPT)
-    gsuite = sesinv.terminate_gsuite(gsuite_creds, GSUITE_USERS_ENDPT)
+    sso = sesinv.terminate_sso(sso_creds, sso_id_fmt, MOZ_OAUTH_ENDPT)
+
+    gsuite = sesinv.terminate_gsuite(gsuite_oauth_token, GSUITE_USERS_ENDPT)
+
     slack = sesinv.terminate_slack(
         slack_oauth_token,
         SLACK_LOOKUP_USER_ENDPT,
         SLACK_SCIM_USERS_ENDPT,
     )
+
     aws = sesinv.terminate_aws(aws_access_key_id, aws_secret_key)
+
     gcp = sesinv.terminate_gcp(gcp_token)
 
     return {
