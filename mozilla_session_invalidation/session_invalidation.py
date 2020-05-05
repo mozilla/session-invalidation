@@ -56,11 +56,14 @@ UserEmail = str
 IJob = types.Callable[[UserEmail], JobResult]
 
 
-def terminate_sso(bearer_token: str, endpt: str) -> IJob:
+def terminate_sso(creds: auth.SSOCreds, id_fmt: str, endpt: str) -> IJob:
     '''Configure a job interface to terminate an SSO session.
 
     The `bearer_token` parameter is expected to be an OAuth token with the
     **update:users** scope required to terminate a user's session.
+
+    The `id_fmt` parameter is expected to be a format string used to construct
+    the user id that is sent to the Auth0 API.  E.g. `"ad|Mozilla-LDAP|{}"`.
 
     The `endpt` parameter is expected to be a format string containing the URL
     of the **invalidate-remember-browser** OAuth endpoint, e.g.
@@ -68,9 +71,19 @@ def terminate_sso(bearer_token: str, endpt: str) -> IJob:
     '''
 
     def _terminate(email: UserEmail) -> JobResult:
+        try:
+            bearer_token = creds.token()
+        except auth.Error as err:
+            return JobResult(
+                TerminationState.ERROR,
+                error='Failed to retrieve SSO OAuth token: Error {}'.format(
+                    err.message,
+                ),
+            )
+
         username = email.split('@')[0]
 
-        user_id = 'ad%7CMozilla-LDAP%7c{}'.format(username)
+        user_id = urllib.parse.quote(id_fmt.format(username))
 
         invalidate_url = endpt.format(user_id)
 
@@ -83,21 +96,17 @@ def terminate_sso(bearer_token: str, endpt: str) -> IJob:
         try:
             response = requests.post(invalidate_url, headers=headers)
 
-            resp_json = response.json()
+            #resp_json = response.json()
         except Exception as ex:
             return JobResult(
                 TerminationState.ERROR,
                 error=err_msg,
             )
 
-        if response.status_code >= 300 or resp_json.get('error') is not None:
+        if response.status_code >= 300:
             return JobResult(
                 TerminationState.ERROR,
-                error='{}: Status {}: Error: {}'.format(
-                    err_msg,
-                    response.status_code,
-                    resp_json['message'],
-                ),
+                error='{}: Status {}'.format(err_msg, response.status_code),
             )
 
         return JobResult(TerminationState.TERMINATED)
@@ -105,7 +114,7 @@ def terminate_sso(bearer_token: str, endpt: str) -> IJob:
     return _terminate
 
 
-def terminate_gsuite(creds: auth.GSuiteCreds, endpt: str) -> IJob:
+def terminate_gsuite(bearer_token: str, endpt: str) -> IJob:
     '''Configure a job interface to terminate a GSuite session.
 
     The `bearer_token` parameter is expected to be an OAuth token with the
@@ -117,16 +126,6 @@ def terminate_gsuite(creds: auth.GSuiteCreds, endpt: str) -> IJob:
     '''
 
     def _terminate(email: UserEmail) -> JobResult:
-        try:
-            bearer_token = creds.token()
-        except auth.Error as err:
-            return JobResult(
-                TerminationState.ERROR,
-                error='Failed to retrieve GSuite OAuth token: Error {}'.format(
-                    err.message,
-                ),
-            )
-
         url = endpt.format(email)
 
         headers = {
