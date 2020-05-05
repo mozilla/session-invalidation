@@ -18,8 +18,8 @@ class Error(Exception):
 
 
 @dataclass
-class GSuiteCreds:
-    '''A manager interface for an OAuth token used to call into the GSuite API.
+class SSOCreds:
+    '''A manager interface for an OAuth token used to call into the Auth0 API.
     Given a client id and secret, this class provides a `token()` method that
     will load and refresh a token after it expires.
     '''
@@ -33,7 +33,7 @@ class GSuiteCreds:
     _expires: types.Optional[datetime] = field(default=None)
 
     def token(self) -> str:
-        '''Retrieve an access token with which to access the GSuite API.
+        '''Retrieve an access token with which to access the Auth0 API.
         '''
 
         now = datetime.utcnow() 
