@@ -30,22 +30,7 @@ def terminate():
     if username is None:
         return msgs.Error('Missing `username` field').to_json()
 
-    sso_creds = flask_global.setdefault('sso_creds', auth.SSOCreds(
-        client_id=app.config['SSO_CLIENT_ID'],
-        client_secret=app.config['SSO_CLIENT_SECRET'],
-        auth_url=app.config['SSO_AUTH_URL'],
-        audience=app.config['SSO_AUDIENCE'],
-        grant_type=app.config['SSO_GRANT_TYPE'],
-    ))
-
-    jobs = _configure_jobs(
-        sso_creds=sso_creds,
-        sso_id_fmt=app.config['SSO_ID_FORMAT'],
-        gsuite_oauth_token='',
-        slack_oauth_token=app.config['SLACK_TOKEN'],
-        aws_access_key_id='',
-        gcp_token='',
-    )
+    jobs = _configure_jobs(app.config)
 
     results = []
 
@@ -62,27 +47,34 @@ def terminate():
     return msgs.Result(results).to_json()
 
 
-def _configure_jobs(
-    sso_creds: types.Optional[auth.SSOCreds] = None,
-    sso_id_fmt: str = '',
-    gsuite_oauth_token: str = '',
-    slack_oauth_token: str = '',
-    aws_access_key_id: str = '',
-    aws_secret_key: str = '',
-    gcp_token: str = '',
-) -> types.Dict[sesinv.SupportedReliantParties, sesinv.IJob]:
+JobConfig = types.Dict[sesinv.SupportedReliantParties, sesinv.IJob]
+
+def _configure_jobs(config) -> JobConfig:
+    sso_creds = auth.SSOCreds(
+        client_id=config['SSO_CLIENT_ID'],
+        client_secret=config['SSO_CLIENT_SECRET'],
+        auth_url=config['SSO_AUTH_URL'],
+        audience=config['SSO_AUDIENCE'],
+        grant_type=config['SSO_GRANT_TYPE'],
+    )
+    sso_id_fmt = config['SSO_ID_FORMAT']
     sso = sesinv.terminate_sso(sso_creds, sso_id_fmt, MOZ_OAUTH_ENDPT)
 
+    gsuite_oauth_token = ''
     gsuite = sesinv.terminate_gsuite(gsuite_oauth_token, GSUITE_USERS_ENDPT)
 
+    slack_oauth_token = config['SLACK_TOKEN']
     slack = sesinv.terminate_slack(
         slack_oauth_token,
         SLACK_LOOKUP_USER_ENDPT,
         SLACK_SCIM_USERS_ENDPT,
     )
 
+    aws_access_key_id = ''
+    aws_secret_key = ''
     aws = sesinv.terminate_aws(aws_access_key_id, aws_secret_key)
 
+    gcp_token = ''
     gcp = sesinv.terminate_gcp(gcp_token)
 
     return {
