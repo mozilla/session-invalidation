@@ -256,7 +256,7 @@ def terminate_slack(
                 error=err_msg,
             )
 
-        if response1.status_code >= 300 or not resp1_json['ok']:
+        if response1.status_code >= 300 or not resp1_json.get('ok', True):
             err_add = 'Could not deactive: Status {}: Error: {}'.format(
                 response1.status_code,
                 resp1_json['error'],
@@ -267,7 +267,7 @@ def terminate_slack(
                 error='{}: {}'.format(err_msg, err_add),
             )
         
-        if response2.status_code >= 300 or not resp2_json['ok']:
+        if response2.status_code >= 300 or not resp2_json.get('ok', True):
             err_add = 'Could not reactivate: Status {}: Error: {}'.format(
                 response2.status_code,
                 resp2_json['error'],
