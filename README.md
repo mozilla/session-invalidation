@@ -59,3 +59,15 @@ milestones:
 
 Following these steps, further development on support for more RPs will take
 place.
+
+## Development
+
+The Session Invalidation tool (name subject to change) is currently in an early
+and active stage of development.  The backend API is not likely to undergo any
+change in the near future, however its interface is described in
+[docs/api.md](https://github.com/mozilla/session-invalidation/blob/master/docs/api.md).
+
+Adding support for new RPs can be done in a fairly modular fashion, and a guide
+explaining all of the changes that need to take place to support terminating
+sessions for a new RP in both the backend and frontend an be found in
+[docs/supporting_new_rps.md](https://github.com/mozilla/session-invalidation/blob/master/docs/supporting_new_rps.md).
