@@ -4,13 +4,97 @@ Parameters:
   KeyPair:
     Type: String
     Description: An EC2 keypair to allow SSH access to the instance
+  ApplicationServerPort:
+    Type: Number
+    Description: The port number that the Session Invalidation application server will run on
 Resources:
-  Ec2Instance:
+  Ec2VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: "10.0.0.0/16"
+      EnableDnsHostnames: "false"
+      EnableDnsSupport: "false"
+      InstanceTenancy: dedicated
+  Ec2Subnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      MapPublicIpOnLaunch: "true"
+      VpcId:
+        Ref: Ec2VPC
+  SecGroupNginx:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "EC2 Nginx Instance Defense"
+      GroupDescription: "Forwards Internet traffic to Nginx by default and allows Nginx to talk to the application"
+      VpcId:
+        Ref: Ec2VPC
+      SecurityGroupIngress:
+        # Allow traffic over HTTP
+        - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+          FromPort: 80
+          ToPort: 80
+        # Allow traffic over HTTPS
+        - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
+          FromPort: 443
+          ToPort: 443
+        # Allow SSH connections
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 192.168.1.1/32
+  SecGroupApplication:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "EC2 Application Instance Defense"
+      GroupDescription: "Allows only traffic from the Nginx Security Group"
+      VpcId:
+        Ref: Ec2VPC
+      SecurityGroupIngress:
+        # Allow SSH connections
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          SourceSecurityGroupName: !Ref SecGroupNginx
+        # Only allow any other traffic from the Nginx security group
+        - IpProtocol: tcp
+          FromPort: !Ref ApplicationServerPort
+          ToPort: !Ref ApplicationServerPort
+          SourceSecurityGroupName: !Ref SecGroupNginx
+  Ec2NginxInstance:
     Type: AWS::EC2::Instance
     Properties:
       KeyName: !Ref KeyPair
       ImageId: ami-003634241a8fcdec0
+      Tenancy: dedicated
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet:
+            - Ref: "SecGroupNginx"
+          SubnetId:
+            Ref: "Ec2Subnet"
+  Ec2ApplicationInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: !Ref KeyPair
+      ImageId: ami-003634241a8fcdec0
+      Tenancy: dedicated
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: "false"
+          DeviceIndex: "1"
+          GroupSet:
+            - Ref: "SecGroupApplication"
+          Subnet:
+            Ref: "Ec2Subnet"
 Outputs:
-  InstanceId:
-    Description: The ID of the newly-created EC2 instance
-    Value: !Ref Ec2Instance
+  PublicIP:
+    Description: The public IP address of the internet-facing Nginx EC2 instance
+    Value: !GetAtt Ec2NginxInstance.PublicIp
+  NginxInstanceId:
+    Description: The ID of the newly-created EC2 instance that runs Nginx
+    Value: !Ref Ec2NginxInstance
+  ApplicationInstanceId:
+    Description: The ID of the newly-created EC2 instance that runs the session invalidation application
+    Value: !Ref Ec2ApplicationInstance 
