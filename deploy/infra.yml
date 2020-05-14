@@ -8,26 +8,28 @@ Parameters:
     Type: Number
     Description: The port number that the Session Invalidation application server will run on
 Resources:
-  Ec2VPC:
+  GlobalVpc:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: "10.0.0.0/16"
       EnableDnsHostnames: "false"
       EnableDnsSupport: "false"
-      InstanceTenancy: dedicated
-  Ec2Subnet:
+      #InstanceTenancy: dedicated
+  GlobalSubnet:
     Type: AWS::EC2::Subnet
     Properties:
+      CidrBlock: "10.0.0.0/16"
+      AvailabilityZone: us-west-2a
       MapPublicIpOnLaunch: "true"
       VpcId:
-        Ref: Ec2VPC
+        Ref: GlobalVpc
   SecGroupNginx:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: "EC2 Nginx Instance Defense"
       GroupDescription: "Forwards Internet traffic to Nginx by default and allows Nginx to talk to the application"
       VpcId:
-        Ref: Ec2VPC
+        Ref: GlobalVpc
       SecurityGroupIngress:
         # Allow traffic over HTTP
         - IpProtocol: tcp
@@ -50,44 +52,47 @@ Resources:
       GroupName: "EC2 Application Instance Defense"
       GroupDescription: "Allows only traffic from the Nginx Security Group"
       VpcId:
-        Ref: Ec2VPC
+        Ref: GlobalVpc
       SecurityGroupIngress:
         # Allow SSH connections
         - IpProtocol: tcp
           FromPort: 22
           ToPort: 22
-          SourceSecurityGroupName: !Ref SecGroupNginx
+          SourceSecurityGroupId: !Ref SecGroupNginx
         # Only allow any other traffic from the Nginx security group
         - IpProtocol: tcp
           FromPort: !Ref ApplicationServerPort
           ToPort: !Ref ApplicationServerPort
-          SourceSecurityGroupName: !Ref SecGroupNginx
+          SourceSecurityGroupId: !Ref SecGroupNginx
   Ec2NginxInstance:
     Type: AWS::EC2::Instance
     Properties:
       KeyName: !Ref KeyPair
+      AvailabilityZone: us-west-2a
       ImageId: ami-003634241a8fcdec0
-      Tenancy: dedicated
+      InstanceType: t2.micro
+      #Tenancy: dedicated
       NetworkInterfaces:
         - AssociatePublicIpAddress: "true"
           DeviceIndex: "0"
           GroupSet:
             - Ref: "SecGroupNginx"
           SubnetId:
-            Ref: "Ec2Subnet"
+            Ref: "GlobalSubnet"
   Ec2ApplicationInstance:
     Type: AWS::EC2::Instance
     Properties:
       KeyName: !Ref KeyPair
+      AvailabilityZone: us-west-2a
       ImageId: ami-003634241a8fcdec0
-      Tenancy: dedicated
+      InstanceType: t2.micro
+      #Tenancy: dedicated
       NetworkInterfaces:
-        - AssociatePublicIpAddress: "false"
-          DeviceIndex: "1"
+        - DeviceIndex: "0"
           GroupSet:
             - Ref: "SecGroupApplication"
-          Subnet:
-            Ref: "Ec2Subnet"
+          SubnetId:
+            Ref: "GlobalSubnet"
 Outputs:
   PublicIP:
     Description: The public IP address of the internet-facing Nginx EC2 instance
