@@ -8,6 +8,53 @@ Parameters:
     Type: Number
     Description: The port number that the Session Invalidation application server will run on
 Resources:
+  SessionInvalidationQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      MessageRetentionPeriod: 345600  # 4 days, the AWS default
+      Tags:
+        - Key: application
+          Value: session-invalidation
+        - Key: stack
+          Value: !Ref AWS::StackName
+        - Key: source
+          Value: https://github.com/mozilla/session-invalidation
+  SQSWriterUser:
+    Properties:
+      Policies:
+        - PolicyName: AllowWritingToSessionInvalidationSQSQueue
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource:
+                  - !GetAtt SessionInvalidationQueue.Arn
+  SQSWriterUserAccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      Serial: 20191230
+      Status: Active
+      UserName: !Ref SQSWriterUser
+  SQSReaderUser:
+    Properties:
+      Policies:
+        - PolicyName: AllowReadingFromSessionInvalidationSQSQueue
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:ReceiveMessage
+                Resource:
+                  - !GetAtt SessionInvalidationQueue.Arn
+  SQSReaderUserAccessKey:
+    Type: AWS::IAM::AccessKey
+    Properites:
+      Serial: 20191230
+      Status: Active
+      UserName: !Ref SQSReaderUser
   GlobalVpc:
     Type: AWS::EC2::VPC
     Properties:
@@ -103,3 +150,30 @@ Outputs:
   ApplicationInstanceId:
     Description: The ID of the newly-created EC2 instance that runs the session invalidation application
     Value: !Ref Ec2ApplicationInstance 
+  SQSWriterUserName:
+    Description: The name of the IAM user created with permissions enabling the session invalidation application to send to SQS
+    Value: !Ref SQSWriterUser
+  SQSWriterUserAccessKeyId:
+    Description: The access key ID of the IAM user granting the session invalidation application send access to SQS
+    Value: !Ref SQSWriterUserAccessKey
+  SQSWriterUserSecretKey:
+    Description: The secret key for the IAM user granting the session invalidation application send access to SQS
+    Value: !Ref SQSWriterUser.SecretAccessKey
+  SQSReaderUserName:
+    Description: The name of the IAM user created with permissions enabling the session invalidation application to read from SQS
+    Value: !Ref SQSReaderUser
+  SQSReaderUserAccessKeyId:
+    Description: The access key ID of the IAM user granting the session invalidation application read access to SQS
+    Value: !Ref SQSReaderUserAccessKey
+  SQSReaderUserSecretKey:
+    Description: The secret key for the IAM user granting the session invalidation application read access to SQS
+    Value: !Ref SQSReaderUser.SecretAccessKey
+  SQSQueueArn:
+    Description: The ARN of the SQS queue that the session invalidation application sends to
+    Value: !Ref SessionInvalidationQueue.Arn
+  SQSQueueName:
+    Description: The name of the SQS queue that the session invalidation application sends to
+    Value: !Ref SessionInvalidationQueue.QueueName
+  SQSQueueUrl:
+    Description: The URL of the SQS queue that the session invalidation application sends to
+    Value: !Ref SessionInvalidationQueue
