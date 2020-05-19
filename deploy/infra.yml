@@ -20,6 +20,7 @@ Resources:
         - Key: source
           Value: https://github.com/mozilla/session-invalidation
   SQSWriterUser:
+    Type: AWS::IAM::User
     Properties:
       Policies:
         - PolicyName: AllowWritingToSessionInvalidationSQSQueue
@@ -38,6 +39,7 @@ Resources:
       Status: Active
       UserName: !Ref SQSWriterUser
   SQSReaderUser:
+    Type: AWS::IAM::User
     Properties:
       Policies:
         - PolicyName: AllowReadingFromSessionInvalidationSQSQueue
@@ -51,7 +53,7 @@ Resources:
                   - !GetAtt SessionInvalidationQueue.Arn
   SQSReaderUserAccessKey:
     Type: AWS::IAM::AccessKey
-    Properites:
+    Properties:
       Serial: 20191230
       Status: Active
       UserName: !Ref SQSReaderUser
@@ -158,7 +160,7 @@ Outputs:
     Value: !Ref SQSWriterUserAccessKey
   SQSWriterUserSecretKey:
     Description: The secret key for the IAM user granting the session invalidation application send access to SQS
-    Value: !Ref SQSWriterUser.SecretAccessKey
+    Value: !GetAtt SQSWriterUserAccessKey.SecretAccessKey
   SQSReaderUserName:
     Description: The name of the IAM user created with permissions enabling the session invalidation application to read from SQS
     Value: !Ref SQSReaderUser
@@ -167,13 +169,13 @@ Outputs:
     Value: !Ref SQSReaderUserAccessKey
   SQSReaderUserSecretKey:
     Description: The secret key for the IAM user granting the session invalidation application read access to SQS
-    Value: !Ref SQSReaderUser.SecretAccessKey
+    Value: !GetAtt SQSReaderUserAccessKey.SecretAccessKey
   SQSQueueArn:
     Description: The ARN of the SQS queue that the session invalidation application sends to
-    Value: !Ref SessionInvalidationQueue.Arn
+    Value: !GetAtt SessionInvalidationQueue.Arn
   SQSQueueName:
     Description: The name of the SQS queue that the session invalidation application sends to
-    Value: !Ref SessionInvalidationQueue.QueueName
+    Value: !GetAtt SessionInvalidationQueue.QueueName
   SQSQueueUrl:
     Description: The URL of the SQS queue that the session invalidation application sends to
     Value: !Ref SessionInvalidationQueue
