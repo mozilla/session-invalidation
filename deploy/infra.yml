@@ -64,6 +64,13 @@ Resources:
       EnableDnsHostnames: "false"
       EnableDnsSupport: "false"
       #InstanceTenancy: dedicated
+  GlobalGateway:
+    Type: AWS::EC2::InternetGateway
+  AttachVpcGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref GlobalGateway
+      VpcId: !Ref GlobalVpc
   GlobalSubnet:
     Type: AWS::EC2::Subnet
     Properties:
@@ -72,6 +79,21 @@ Resources:
       MapPublicIpOnLaunch: "true"
       VpcId:
         Ref: GlobalVpc
+  GlobalRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref GlobalVpc
+  AssociateSubnetRouteTable:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref GlobalRouteTable
+      SubnetId: !Ref GlobalSubnet
+  RouteAllOutboundToInternet:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref GlobalRouteTable
+      GatewayId: !Ref GlobalGateway
   SecGroupNginx:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -92,9 +114,9 @@ Resources:
           ToPort: 443
         # Allow SSH connections
         - IpProtocol: tcp
+          CidrIp: 0.0.0.0/0
           FromPort: 22
           ToPort: 22
-          CidrIp: 192.168.1.1/32
   SecGroupApplication:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -137,7 +159,8 @@ Resources:
       InstanceType: t2.micro
       #Tenancy: dedicated
       NetworkInterfaces:
-        - DeviceIndex: "0"
+        - AssociatePublicIpAddress: "false"
+          DeviceIndex: "0"
           GroupSet:
             - Ref: "SecGroupApplication"
           SubnetId:
