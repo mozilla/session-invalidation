@@ -1,14 +1,10 @@
 VENV_DIR := $(HOME)/.pyenv/versions/session-invalidation
-SESSION_SECRET := $(shell openssl rand -base64 32)
-
-all: run
 
 clean:
 	rm -rf $(VENV_DIR) && rm -rf *.egg-info && rm -rf dist && rm -rf *.log*
 
 venv:
 	./setup-pyenv.sh
-	python setup.py develop
 
 requirements: venv
 	pip install -r requirements.txt
@@ -16,11 +12,13 @@ requirements: venv
 requirements-test: venv
 	pip install -r requirements-test.txt
 
-run: requirements
-	@SECRET_KEY=$(SESSION_SECRET) MOZILLA_SESSION_INVALIDATION_SETTINGS=../settings.cfg python mozilla_session_invalidation/main.py
-
 test: requirements-test
-	MOZILLA_SESSION_INVALIDATION_SETTINGS=../settings.cfg python -m unittest discover -s tests
+	python -m unittest discover -s tests
 
-sdist: venv test
-	venv/bin/python setup.py sdist
+install-serverless:
+	curl -o- -L https://slss.io/install | bash
+
+deploy: install-serverless
+	pip install -r requirements.txt -t lib
+	serverless deploy
+	rm -rf lib/
