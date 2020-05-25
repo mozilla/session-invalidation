@@ -1,27 +1,56 @@
 import json
+import os
+import sys
+
+if 'LAMBDA_TASK_ROOT' in os.environ:
+    sys.path.append(f"{os.environ['LAMBDA_TASK_ROOT']}/lib")
+else:
+    sys.path.append('lib')
+
+import boto3
 
 
-INDEX = '''<doctype HTML>
+STATIC_CONTENT_BUCKET_NAME = 'session-invalidation-static-content'
+
+ERROR_PAGE = '''<doctype HTML>
 <html>
     <head>
-        <title>Session Invalidation</title>
+        <title>Session Invalidation Error</title>
     </head>
     <body>
-        <h1>Mozilla Session Invalidation</h1>
-        <p>
-            Hello, world!
-        </p>
+        <h1>Error</h1>
+        <p>{0}</p>
     </body>
 </html>
 '''
 
+
+def static_content(filename):
+    s3 = boto3.resource('s3')
+    static_content = s3.Bucket(STATIC_CONTENT_BUCKET_NAME)
+
+    file_path = f'/tmp/{filename}'
+
+    if not os.path.isfile(file_path):
+        with open(file_path, 'wb') as f:
+            static_content.download_fileobj(filename, f)
+
+    with open(file_path, 'rb') as f:
+        return f.read()
+
+
 def index(event, context):
+    try:
+        index_page = static_content('index.html')
+    except Exception as ex:
+        index_page = ERROR_PAGE.format(ex)
+
     return {
         'statusCode': 200,
         'headers': {
             'Content-Type': 'text/html',
         },
-        'body': INDEX,
+        'body': index_page,
     }
 
 
@@ -33,3 +62,7 @@ def terminate(event, context):
             'results': [],
         }),
     }
+
+
+if  __name__ == '__main__':
+    print(index('', ''))
