@@ -3,6 +3,9 @@
 settings.cfg
 
 
+# Serverless state stuff
+.serverless/
+
 ## Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

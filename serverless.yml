@@ -1,0 +1,35 @@
+service: mozilla-session-invalidation
+provider:
+  name: aws
+  runtime: python3.8
+  stage: dev
+  region: us-west-2
+#  iamRoleStatements:
+#    - Effect: Allow
+#      Action:
+#        - sqs:SendMessage
+#      Resource: !GetAtt SQSToMozDef.Arn
+#  Resources:
+#    SQSToMozDef:
+#      Type: AWS::SQS::Queue
+#      Properties:
+#        MessageRetentionPeriod: 345600  # 4 days, the AWS default
+#        Tags:
+#          - Key: application
+#            Value: session-invalidation
+#          - Key: stack
+#            Value: !Ref AWS::StackName
+#          - Key: source
+#            Value: https://github.com/mozilla/session-invalidation
+#package:
+#  include:
+#    - mozilla_session_invalidation/**
+functions:
+  index:
+    handler: lambda.index
+    events:
+      - http: get /
+  terminate:
+    handler: lambda.terminate
+    events:
+      - http: post /terminate
