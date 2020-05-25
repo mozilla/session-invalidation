@@ -9,16 +9,20 @@ provider:
       Action:
         - s3:ListBuckets
         - s3:GetObject
-      Resource: !Ref StaticContentBucket.Arn
+      Resource:
+        - Fn::GetAtt:
+           - StaticContentBucket
+           - Arn
 #    - Effect: Allow
 #      Action:
 #        - sqs:SendMessage
 #      Resource: !GetAtt SQSToMozDef.Arn
+resources:
   Resources:
     StaticContentBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: SessionInvalidationStaticContent
+        BucketName: session-invalidation-static-content
         AccessControl: Private
 #    SQSToMozDef:
 #      Type: AWS::SQS::Queue
