@@ -4,12 +4,22 @@ provider:
   runtime: python3.8
   stage: dev
   region: us-west-2
-#  iamRoleStatements:
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:ListBuckets
+        - s3:GetObject
+      Resource: !Ref StaticContentBucket.Arn
 #    - Effect: Allow
 #      Action:
 #        - sqs:SendMessage
 #      Resource: !GetAtt SQSToMozDef.Arn
-#  Resources:
+  Resources:
+    StaticContentBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: SessionInvalidationStaticContent
+        AccessControl: Private
 #    SQSToMozDef:
 #      Type: AWS::SQS::Queue
 #      Properties:
