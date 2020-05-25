@@ -17,6 +17,13 @@ provider:
 #      Action:
 #        - sqs:SendMessage
 #      Resource: !GetAtt SQSToMozDef.Arn
+  Outputs:
+    StaticContentBucket:
+      Description: The URL of the S3 bucket used to host static content
+      Value:
+        Fn::GetAtt
+          - StaticContentBucket
+          - WebsiteURL
 resources:
   Resources:
     StaticContentBucket:
