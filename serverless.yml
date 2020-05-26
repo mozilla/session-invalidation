@@ -41,7 +41,7 @@ resources:
 #            Value: https://github.com/mozilla/session-invalidation
 package:
   include:
-#    - mozilla_session_invalidation/**
+    - sesinv/**
     - lib/**
 functions:
   index:

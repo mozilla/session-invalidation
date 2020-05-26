@@ -9,6 +9,8 @@ else:
 
 import boto3
 
+import sesinv
+
 
 STATIC_CONTENT_BUCKET_NAME = 'session-invalidation-static-content'
 
@@ -87,12 +89,21 @@ def static(event, context):
 
 
 def terminate(event, context):
+    username = event['Body'].get('username')
+
+    if username is None:
+        return {
+            'statusCode': 400,
+            'body': json.dumps(
+                sesinv.msgs.Error('Missing `username` field').to_json(),
+            ),
+        }
+
+    results = []
+
     return {
         'statusCode': 200,
-        'body': json.dumps({
-            'error': None,
-            'results': [],
-        }),
+        'body': json.dumps(sesinv.msgs.Result(results).to_json()),
     }
 
 

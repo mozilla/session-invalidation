@@ -5,7 +5,7 @@ import urllib.parse
 
 import requests
 
-import mozilla_session_invalidation.authentication as auth
+import sesinv.authentication as auth
 
 
 class SupportedReliantParties(Enum):

@@ -3,7 +3,7 @@ from enum import Enum
 import typing as types
 
 
-from mozilla_session_invalidation.session_invalidation import\
+from sesinv.session_invalidation import\
     SupportedReliantParties,\
     TerminationState
 

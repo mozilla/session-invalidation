@@ -1,3 +1,4 @@
+'''
 import typing as types
 
 from flask import g as flask_global, render_template, request, session
@@ -84,3 +85,4 @@ def _configure_jobs(config) -> JobConfig:
         sesinv.SupportedReliantParties.AWS: aws,
         sesinv.SupportedReliantParties.GCP: gcp,
     }
+'''
