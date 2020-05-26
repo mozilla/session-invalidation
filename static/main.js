@@ -1,4 +1,4 @@
-const TERMINATE_ENDPT = '/terminate'
+const TERMINATE_ENDPT = '/dev/terminate'
 const STATUS_UPDATE_INTERVAL = 500
 
 
