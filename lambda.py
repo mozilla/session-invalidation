@@ -67,11 +67,8 @@ def static(event, context):
 
     try:
         content = static_content(filename)
-    except Exception as ex:
-        return {
-            'statusCode': 404,
-            'body': str(ex),
-        }
+    except:
+        return error_404
 
     ext = filename.split('.')[-1]
 
