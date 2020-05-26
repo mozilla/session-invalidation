@@ -4,12 +4,26 @@ provider:
   runtime: python3.8
   stage: dev
   region: us-west-2
+  environment:
+    MOZ_OAUTH_ENDPT: 'https://auth-dev.mozilla.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser'
+    GSUITE_USERS_ENDPT: 'https://www.googleapis.com/admin/directory/v1/users/{}',
+    SLACK_LOOKUP_USER_ENDPT: 'https://slack.com/api/users.lookupByEmail',
+    SLACK_SCIM_USERS_ENDPT: 'https://api.slack.com/scim/v1/Users',
+    SSO_ID_FORMAT: 'ad|Mozilla-LDAP-Dev|{}'
+    SSO_AUTH_URL: 'https://auth-dev.mozilla.auth0.com/oauth/token'
+    SSO_AUDIENCE: 'https://auth-dev.mozilla.auth0.com/api/v2/'
+    SSO_GRANT_TYPE: 'client_credentials'
   iamRoleStatements:
     - Effect: Allow
       Action:
         - s3:ListBuckets
         - s3:GetObject
       Resource: !Join ["/", [!GetAtt "StaticContentBucket.Arn", "*"]]
+    - Effect: Allow
+      Action:
+        - ssm:GetParameter
+        - ssm:GetParameters
+      Resource: ${opt:secrets-param-arn}
 #    - Effect: Allow
 #      Action:
 #        - sqs:SendMessage

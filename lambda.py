@@ -13,6 +13,7 @@ import sesinv
 
 
 STATIC_CONTENT_BUCKET_NAME = 'session-invalidation-static-content'
+SECRETS_SSM_PARAMETER = 'session-invalidation-secrets'
 
 ERROR_PAGE = '''<doctype HTML>
 <html>
@@ -42,26 +43,53 @@ def static_content(filename):
 
 
 def load_config():
-    # TODO: Load secrets from SSM and store in env vars. Load remainder from env vars.
+    # These are expected to be found in SSM and then loaded into environment
+    # variables to avoid reading from SSM too often.  Env vars are encrypted.
+    secret_cfg_keys = [
+        'SSO_CLIENT_ID',
+        'SSO_CLIENT_SECRET',
+        'SLACK_TOKEN',
+    ]
 
-    return {
-        # SECRETS
-        'SSO_CLIENT_ID': '',
-        'SSO_CLIENT_SECRET': '',
-        'SLACK_TOKEN': '',
+    # These are expected to be stored in environment variables when the
+    # function is deployed.
+    non_secret_cfg_keys = [
+        'SSO_AUTH_URL',
+        'SSO_AUDIENCE',
+        'SSO_GRANT_TYPE',
+        'SSO_ID_FORMAT',
+        'MOZ_OAUTH_ENDPT',
+        'GSUITE_USERS_ENDPT',
+        'SLACK_LOOKUP_USER_ENDPT',
+        'SLACK_SCIM_USERS_ENDPT',
+    ]
 
-        # Non-secrets
-        'SSO_AUTH_URL': '',
-        'SSO_AUDIENCE': '',
-        'SSO_GRANT_TYPE': '',
-        'SSO_ID_FORMAT': '',
-        'MOZ_OAUTH_ENDPT': 'https://auth-dev.mozilla.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser',
-        'GSUITE_USERS_ENDPT': 'https://www.googleapis.com/admin/directory/v1/users/{}',
-        'SLACK_LOOKUP_USER_ENDPT': 'https://slack.com/api/users.lookupByEmail',
-        'SLACK_SCIM_USERS_ENDPT': 'https://api.slack.com/scim/v1/Users',
+    # Only load secrets from SSM if they aren't already stored in env vars.
+    if any([os.environ.get(secret) is None for secret in secret_cfg_keys]):
+        ssm = boto3.client('ssm')
+        parameter = ssm.get_parameter(Name=SECRETS_SSM_PARAMETER)
+        pairs = parameter['Parameter']['Value'].split(',')
+        secrets = {}
+
+        for pair in pairs:
+            (name, value) = pair.split('=')
+            secrets[name] = value
+
+        os.environ.update(secrets)
+
+    config = {
+        key: os.environ[key]
+        for key in non_secret_cfg_keys
     }
 
+    config.update({
+        secret: os.environ[secret]
+        for secret in secret_cfg_keys
+    })
 
+    return config
+
+       
 def index(event, context):
     try:
         index_page = static_content('index.html')
