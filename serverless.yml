@@ -42,9 +42,10 @@ resources:
 #            Value: !Ref AWS::StackName
 #          - Key: source
 #            Value: https://github.com/mozilla/session-invalidation
-#package:
-#  include:
+package:
+  include:
 #    - mozilla_session_invalidation/**
+    - lib/**
 functions:
   index:
     handler: lambda.index
