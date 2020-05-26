@@ -2,6 +2,7 @@ VENV_DIR := $(HOME)/.pyenv/versions/session-invalidation
 
 clean:
 	rm -rf $(VENV_DIR) && rm -rf *.egg-info && rm -rf dist && rm -rf *.log*
+	rm -rf lib
 
 venv:
 	./scripts/setup-pyenv.sh
@@ -27,8 +28,7 @@ upload-static-content:
 delete-static-content:
 	./scripts/delete-static-content.sh
 
-teardown-deploy: delete-static-content
-	rm -rf lib/
+teardown-deploy: clean delete-static-content
 	serverless remove
 	aws ssm delete-parameter --name session-invalidation-secrets
 
