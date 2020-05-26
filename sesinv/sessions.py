@@ -54,6 +54,43 @@ class JobResult:
 # be terminated.
 UserEmail = str
 IJob = types.Callable[[UserEmail], JobResult]
+JobConfig = types.Dict[SupportedReliantParties, IJob]
+
+def _configure_jobs(config) -> JobConfig:
+    sso_creds = auth.SSOCreds(
+        client_id=config['SSO_CLIENT_ID'],
+        client_secret=config['SSO_CLIENT_SECRET'],
+        auth_url=config['SSO_AUTH_URL'],
+        audience=config['SSO_AUDIENCE'],
+        grant_type=config['SSO_GRANT_TYPE'],
+    )
+    sso_id_fmt = config['SSO_ID_FORMAT']
+    sso = terminate_sso(sso_creds, sso_id_fmt, config['MOZ_OAUTH_ENDPT'])
+
+    gsuite_oauth_token = ''
+    gsuite = terminate_gsuite(gsuite_oauth_token, config['GSUITE_USERS_ENDPT'])
+
+    slack_oauth_token = config['SLACK_TOKEN']
+    slack = terminate_slack(
+        slack_oauth_token,
+        config['SLACK_LOOKUP_USER_ENDPT'],
+        config['SLACK_SCIM_USERS_ENDPT'],
+    )
+
+    aws_access_key_id = ''
+    aws_secret_key = ''
+    aws = terminate_aws(aws_access_key_id, aws_secret_key)
+
+    gcp_token = ''
+    gcp = terminate_gcp(gcp_token)
+
+    return {
+        SupportedReliantParties.SSO: sso,
+        SupportedReliantParties.GSUITE: gsuite,
+        SupportedReliantParties.SLACK: slack,
+        SupportedReliantParties.AWS: aws,
+        SupportedReliantParties.GCP: gcp,
+    }
 
 
 def terminate_sso(creds: auth.SSOCreds, id_fmt: str, endpt: str) -> IJob:

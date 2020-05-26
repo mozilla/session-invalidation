@@ -41,6 +41,27 @@ def static_content(filename):
         return f.read()
 
 
+def load_config():
+    # TODO: Load secrets from SSM and store in env vars. Load remainder from env vars.
+
+    return {
+        # SECRETS
+        'SSO_CLIENT_ID': '',
+        'SSO_CLIENT_SECRET': '',
+        'SLACK_TOKEN': '',
+
+        # Non-secrets
+        'SSO_AUTH_URL': '',
+        'SSO_AUDIENCE': '',
+        'SSO_GRANT_TYPE': '',
+        'SSO_ID_FORMAT': '',
+        'MOZ_OAUTH_ENDPT': 'https://auth-dev.mozilla.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser',
+        'GSUITE_USERS_ENDPT': 'https://www.googleapis.com/admin/directory/v1/users/{}',
+        'SLACK_LOOKUP_USER_ENDPT': 'https://slack.com/api/users.lookupByEmail',
+        'SLACK_SCIM_USERS_ENDPT': 'https://api.slack.com/scim/v1/Users',
+    }
+
+
 def index(event, context):
     try:
         index_page = static_content('index.html')
@@ -108,7 +129,24 @@ def terminate(event, context):
     if username is None:
         return error(400, 'Missing `username` field')
 
+    try:
+        config = load_config()
+    except:
+        return error(500, 'Unable to load configuration')
+
+    jobs = sesinv.sessions.configure_jobs(config)
+
     results = []
+
+    for rp, job in jobs.items():
+        result = job(username)
+
+        results.append(sesinv.messages.Status(
+            affected_rp=rp,
+            current_state=result.new_state,
+            output=result.output,
+            error=result.error,
+        ))
 
     return {
         'statusCode': 200,
