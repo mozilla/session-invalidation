@@ -29,6 +29,10 @@ ERROR_PAGE = '''<doctype HTML>
 
 
 def static_content(filename):
+    '''Load a static file from S3 and save it to the /tmp directory.
+    On future requests for the same file, it will be loaded from disk.
+    '''
+
     s3 = boto3.resource('s3')
     static_content = s3.Bucket(STATIC_CONTENT_BUCKET_NAME)
 
@@ -43,6 +47,11 @@ def static_content(filename):
 
 
 def load_config():
+    '''Retrieve secrets from SSM Parameter Store and save them in environment
+    variables for future retrieval.  Merge these with non-secret configuration
+    values from other environment variables.
+    '''
+
     # These are expected to be found in SSM and then loaded into environment
     # variables to avoid reading from SSM too often.  Env vars are encrypted.
     secret_cfg_keys = [
@@ -91,6 +100,9 @@ def load_config():
 
        
 def index(event, context):
+    '''Serve the index page.
+    '''
+
     try:
         index_page = static_content('index.html')
     except Exception as ex:
@@ -106,6 +118,9 @@ def index(event, context):
 
 
 def static(event, context):
+    '''Serve static CSS and JavaScript files.
+    '''
+
     filename = event.get('pathParameters', {}).get('filename')
 
     error_404 = {
@@ -138,6 +153,9 @@ def static(event, context):
 
 
 def terminate(event, context):
+    '''Terminate a user's sessions across supported reliant parties.
+    '''
+
     def error(status, msg):
         return {
             'statusCode': status,
