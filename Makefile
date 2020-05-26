@@ -30,5 +30,6 @@ delete-static-content:
 teardown-deploy: delete-static-content
 	rm -rf lib/
 	serverless remove
+	aws ssm delete-parameter --name session-invalidation-secrets
 
 deploy: install-serverless deploy-functions upload-static-content
