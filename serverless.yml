@@ -9,10 +9,7 @@ provider:
       Action:
         - s3:ListBuckets
         - s3:GetObject
-      Resource:
-        - Fn::GetAtt:
-           - StaticContentBucket
-           - Arn
+      Resource: !Join ["/", [!GetAtt "StaticContentBucket.Arn", "*"]]
 #    - Effect: Allow
 #      Action:
 #        - sqs:SendMessage
@@ -51,6 +48,10 @@ functions:
     handler: lambda.index
     events:
       - http: get /
+  static:
+    handler: lambda.static
+    events:
+      - http: get /static/{filename}
   terminate:
     handler: lambda.terminate
     events:

@@ -54,6 +54,41 @@ def index(event, context):
     }
 
 
+def static(event, context):
+    filename = event.get('pathParameters', {}).get('filename')
+
+    error_404 = {
+        'statusCode': 404,
+        'body': f'{filename} not found',
+    }
+
+    if filename is None or '.' not in filename:
+        return error_404
+
+    try:
+        content = static_content(filename)
+    except Exception as ex:
+        return {
+            'statusCode': 404,
+            'body': str(ex),
+        }
+
+    ext = filename.split('.')[-1]
+
+    content_types = {
+        'css': 'text/css',
+        'js': 'application/javascript',
+    }
+
+    return {
+        'statusCode': 200,
+        'headers': {
+            'Content-Type': content_types[ext],
+        },
+        'body': content,
+    }
+
+
 def terminate(event, context):
     return {
         'statusCode': 200,
@@ -65,4 +100,4 @@ def terminate(event, context):
 
 
 if  __name__ == '__main__':
-    print(index('', ''))
+    print(static({'pathParameters': {'filename': 'styles.css'}}, ''))
