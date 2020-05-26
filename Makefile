@@ -25,7 +25,11 @@ deploy-functions:
 upload-static-content:
 	./scripts/upload-static-content.sh
 
-cleanup-deploy:
-	rm -rf lib/
+delete-static-content:
+	./scripts/delete-static-content.sh
 
-deploy: install-serverless deploy-fucntions upload-static-content
+teardown-deploy: delete-static-content
+	rm -rf lib/
+	serverless remove
+
+deploy: install-serverless deploy-functions upload-static-content
