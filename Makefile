@@ -18,9 +18,8 @@ test: requirements-test
 install-serverless:
 	./scripts/install-serverless.sh
 
-deploy-functions:
-	pip install -r requirements.txt -t lib
-	serverless deploy
+deploy-functions: 
+	./scripts/deploy-functions.sh
 
 upload-static-content:
 	./scripts/upload-static-content.sh
