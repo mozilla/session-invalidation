@@ -56,7 +56,7 @@ UserEmail = str
 IJob = types.Callable[[UserEmail], JobResult]
 JobConfig = types.Dict[SupportedReliantParties, IJob]
 
-def _configure_jobs(config) -> JobConfig:
+def configure_jobs(config) -> JobConfig:
     sso_creds = auth.SSOCreds(
         client_id=config['SSO_CLIENT_ID'],
         client_secret=config['SSO_CLIENT_SECRET'],
