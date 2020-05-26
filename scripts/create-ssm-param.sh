@@ -3,7 +3,7 @@ PARAMETER_NAME="session-invalidation-secrets"
 # Check if the parameter already exists. If it does, we will update its value.
 aws ssm get-parameter --name $PARAMETER_NAME 2> /dev/null
 
-if [ $? -eq 0 ]; then
+if [ $? -ne 0 ]; then
   # Echo error to stderr if a required environment variable is missing
 
   if test -z "$SSO_CLIENT_ID"; then
