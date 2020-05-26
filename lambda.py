@@ -89,23 +89,32 @@ def static(event, context):
 
 
 def terminate(event, context):
-    username = event['Body'].get('username')
-
-    if username is None:
+    def error(status, msg):
         return {
-            'statusCode': 400,
+            'statusCode': status,
+            'headers': {
+                'Content-Type': 'application/json',
+            },
             'body': json.dumps(
-                sesinv.msgs.Error('Missing `username` field').to_json(),
+                sesinv.messages.Error(msg).to_json(),
             ),
         }
+
+    try:
+        username = json.loads(event['body']).get('username')
+    except:
+        return error(400, 'Invalid body format. Expected JSON')
+
+    if username is None:
+        return error(400, 'Missing `username` field')
 
     results = []
 
     return {
         'statusCode': 200,
-        'body': json.dumps(sesinv.msgs.Result(results).to_json()),
+        'body': json.dumps(sesinv.messages.Result(results).to_json()),
     }
 
 
 if  __name__ == '__main__':
-    print(static({'pathParameters': {'filename': 'styles.css'}}, ''))
+    print(terminate({'body': {'username': 'test@mozilla.com'}}, ''))

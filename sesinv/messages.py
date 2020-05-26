@@ -3,7 +3,7 @@ from enum import Enum
 import typing as types
 
 
-from sesinv.session_invalidation import\
+from sesinv.sessions import\
     SupportedReliantParties,\
     TerminationState
 
