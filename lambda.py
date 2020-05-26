@@ -183,4 +183,14 @@ def terminate(event, context):
 
 
 if  __name__ == '__main__':
-    print(terminate({'body': {'username': 'test@mozilla.com'}}, ''))
+    os.environ.update({
+        'MOZ_OAUTH_ENDPT': 'https://auth-dev.mozilla.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser',
+        'GSUITE_USERS_ENDPT': 'https://www.googleapis.com/admin/directory/v1/users/{}',
+        'SLACK_LOOKUP_USER_ENDPT': 'https://slack.com/api/users.lookupByEmail',
+        'SLACK_SCIM_USERS_ENDPT': 'https://api.slack.com/scim/v1/Users',
+        'SSO_ID_FORMAT': 'ad|Mozilla-LDAP-Dev|{}',
+        'SSO_AUTH_URL': 'https://auth-dev.mozilla.auth0.com/oauth/token',
+        'SSO_AUDIENCE': 'https://auth-dev.mozilla.auth0.com/api/v2/',
+        'SSO_GRANT_TYPE': 'client_credentials',
+    })
+    print(load_config())
