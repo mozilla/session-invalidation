@@ -164,7 +164,7 @@ def index(event, context):
     try:
         index_page = static_content('index.html')
     except Exception as ex:
-        log(f'Failed to load index page from S3: ${ex}', logging.CRITICAL)
+        log(f'Failed to load index page from S3: {ex}', logging.CRITICAL)
         index_page = ERROR_PAGE.format(ex)
 
     return {
@@ -187,16 +187,16 @@ def static(event, context):
         'body': f'{filename} not found',
     }
 
-    log(f'Static file ${filename} requested', logging.INFO)
+    log(f'Static file {filename} requested', logging.INFO)
 
     if filename is None or '.' not in filename:
-        log(f'Static file ${filename} not valid', logging.ERROR)
+        log(f'Static file {filename} not valid', logging.ERROR)
         return error_404
 
     try:
         content = static_content(filename)
     except:
-        log(f'Static file ${filename} not found', logging.ERROR)
+        log(f'Static file {filename} not found', logging.ERROR)
         return error_404
 
     ext = filename.split('.')[-1]
@@ -243,12 +243,12 @@ def terminate(event, context):
         )
         return error(400, 'Missing `username` field')
 
-    log(f'Request to terminate sessions for ${username}', logging.WARNING)
+    log(f'Request to terminate sessions for {username}', logging.WARNING)
 
     try:
         config = load_config()
     except Exception as ex:
-        log('Failed to load configuration: ${ex}', logging.CRITICAL)
+        log('Failed to load configuration: {ex}', logging.CRITICAL)
         return error(500, 'Unable to load configuration')
 
     jobs = sesinv.sessions.configure_jobs(config)
@@ -268,7 +268,7 @@ def terminate(event, context):
     result = sesinv.messages.Result(results)
 
     log(
-        f'Terminated sessions for ${username}',
+        f'Terminated sessions for {username}',
         logging.WARNING,
         username=username,
         result=result,
