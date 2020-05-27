@@ -24,10 +24,10 @@ provider:
         - ssm:GetParameter
         - ssm:GetParameters
       Resource: ${opt:secrets-param-arn}
-#    - Effect: Allow
-#      Action:
-#        - sqs:SendMessage
-#      Resource: !GetAtt SQSToMozDef.Arn
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+      Resource: !GetAtt SQSToMozDef.Arn
 resources:
   Resources:
     StaticContentBucket:
@@ -35,20 +35,37 @@ resources:
       Properties:
         BucketName: session-invalidation-static-content
         AccessControl: Private
-#    SQSToMozDef:
-#      Type: AWS::SQS::Queue
-#      Properties:
-#        MessageRetentionPeriod: 345600  # 4 days, the AWS default
-#        Tags:
-#          - Key: application
-#            Value: session-invalidation
-#          - Key: stack
-#            Value: !Ref AWS::StackName
-#          - Key: source
-#            Value: https://github.com/mozilla/session-invalidation
+    SQSToMozDef:
+      Type: AWS::SQS::Queue
+      Properties:
+        MessageRetentionPeriod: 345600  # 4 days, the AWS default
+        Tags:
+          - Key: application
+            Value: session-invalidation
+          - Key: stack
+            Value: !Ref AWS::StackName
+          - Key: source
+            Value: https://github.com/mozilla/session-invalidation
     SQSToMozDefReader:
       Type: AWS::IAM::User
       Properties:
+        Policies:
+          - PolicyName: ReceiveFromSessionInvalidationSQS
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - sqs:ReceiveMessage
+                    - sqs:ListQueues
+                    - sqs:DeleteMessage
+                    - sqs:GetQueueUrl
+                    - sqs:GetQueueAttributes
+                    - sqs:ChangeMessageVisibility
+                    - sqs:ListQueueTags
+                    - sqs:PurgeQueue
+                  Resource:
+                    - !GetAtt SQSToMozDef.Arn
         Tags:
           - Key: application
             Value: session-invalidation
