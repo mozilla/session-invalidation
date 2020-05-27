@@ -13,6 +13,7 @@ provider:
     SSO_AUTH_URL: 'https://auth-dev.mozilla.auth0.com/oauth/token'
     SSO_AUDIENCE: 'https://auth-dev.mozilla.auth0.com/api/v2/'
     SSO_GRANT_TYPE: 'client_credentials'
+    SQS_QUEUE_URL: !Ref SQSToMozDef
   iamRoleStatements:
     - Effect: Allow
       Action:

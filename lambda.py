@@ -35,11 +35,38 @@ logging.getLogger('boto3').propagate = False
 logging.getLogger('botocore').propagate = False
 
 
-def log(message, level='debug'):
+def log(message, level='debug', username=None, result=None):
     '''Write a log message and an instrumentation event to SQS.
     '''
 
     logger.log(level, message)
+
+    message = {
+        'category': 'sessioninvalidation',
+        'details': {
+            'logmessage': message,
+            'loglevel': level,
+            'invalidateduser': None,
+            'invalidatedsessions': None,
+        },
+    }
+
+    if username is not None:
+        message['details']['invalidateduser'] = username
+
+    if result is not None:
+        message['details']['invalidatedsessions'] = [
+            res.affected_rp.value
+            for res in result.results
+            if res.current_state == sesinv.sessions.TerminationState.TERMINATED
+        ]
+
+    sqs = boto3.client('sqs')
+
+    sqs.send_message(
+        QueueUrl=os.environ['SQS_QUEUE_URL'],
+        MessageBody=json.dumps(message),
+    )
 
 
 def static_content(filename):
@@ -220,13 +247,18 @@ def terminate(event, context):
             error=result.error,
         ))
 
-    result_json = sesinv.messages.Result(results).to_json()
+    result = sesinv.messages.Result(results)
 
-    log(f'Terminated sessions for ${username}', 'warning', extras=result_json)
+    log(
+        f'Terminated sessions for ${username}',
+        'warning',
+        username=username,
+        result=result,
+    )
 
     return {
         'statusCode': 200,
-        'body': json.dumps(result_json),
+        'body': json.dumps(result.to_json()),
     }
 
 
