@@ -43,7 +43,7 @@ type Message = {
 }
 ```
 
-Some examples:
+## Examples
 
 **A user's sessions were invalidated**
 
@@ -75,3 +75,59 @@ writing this, so we do not yet have access to requester information._
   }
 }
 ```
+
+## Events of Interest
+
+There are several events logged for consumption by MozDef that can be safely
+disregarded until an investigation takes place.  However the following are
+likely of high enough importance that alerts should be triggered when they are
+observed.
+
+### Scenario: Someone accesses the session invalidation application
+
+This scenario is of interest because someone accessing the application is an
+occurrence we would like to know about early.  This event is indicated by an
+instrumentation message with a `details.logmessage` value of
+
+> "Session Invalidation application requested"
+
+and a `details.loglevel` of `"info"`.
+
+### Scenario: Someone makes a request to the terminate endpoint
+
+Rather than waiting for a potential attacker to succeed at terminating user
+sessions, it may be prudent to alert when the terminate endpoint is requested.
+This event is indicated by messages with `details.logmessage` and
+`details.loglevel` values of
+
+```json
+{
+  "logmessage": "Invalid request sent to terminate endpoint",
+  "loglevel": "error"
+}
+```
+
+```json
+{
+  "logmessage": "Request sent to terminate endpoint with missing username",
+  "loglevel": "error"
+}
+```
+
+```json
+{
+  "logmessage": "Request to terminate sessions for {username}",
+  "loglevel": "warning"
+}
+```
+
+```json
+{
+  "logmessage": "Terminated sessions for {username}",
+  "loglevel": "warning"
+}
+```
+
+A common feature of these messages is that the `logmessage` fields all contain
+either the substring `"terminate"` or `"Terminate"`.  The events of particularly
+high interest have `loglevel`s of `"warning"`.
