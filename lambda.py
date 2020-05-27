@@ -153,13 +153,7 @@ def index(event, context):
     '''Serve the index page.
     '''
 
-    try:
-        log('Session Invalidation application requested', logging.INFO)
-    except Exception as ex:
-        return {
-            'statusCode': 500,
-            'body': str(ex),
-        }
+    log('Session Invalidation application requested', logging.INFO)
 
     try:
         index_page = static_content('index.html')
