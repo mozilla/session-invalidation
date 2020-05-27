@@ -31,7 +31,7 @@ type Message = {
     "logmessage": string,
 
     // The level of severity of the event the message describes.
-    "loglevel": "info" | "debug" | "warning" | "error" | "exception",
+    "loglevel": "notset" | "info" | "debug" | "warning" | "error" | "critical",
 
     // The email address of the user whose sessions were terminated if
     // a termination event is being described, or else null.

@@ -30,14 +30,23 @@ ERROR_PAGE = '''<doctype HTML>
 
 
 logger = logging.getLogger()
-logger.getLogger().setLevel(os.environ.get('LOG_LEVEL', 'DEBUG'))
+logger.setLevel(os.environ.get('LOG_LEVEL', 'DEBUG'))
 logging.getLogger('boto3').propagate = False
 logging.getLogger('botocore').propagate = False
 
 
-def log(message, level='debug', username=None, result=None):
+def log(message, level=logging.DEBUG, username=None, result=None):
     '''Write a log message and an instrumentation event to SQS.
     '''
+
+    level_name = {
+        logging.NOTSET: 'notset',
+        logging.DEBUG: 'debug',
+        logging.INFO: 'info',
+        logging.WARNING: 'warning',
+        logging.ERROR: 'error',
+        logging.CRITICAL: 'critical',
+    }.get(level, 'info')
 
     logger.log(level, message)
 
@@ -45,7 +54,7 @@ def log(message, level='debug', username=None, result=None):
         'category': 'sessioninvalidation',
         'details': {
             'logmessage': message,
-            'loglevel': level,
+            'loglevel': level_name,
             'invalidateduser': None,
             'invalidatedsessions': None,
         },
@@ -144,12 +153,18 @@ def index(event, context):
     '''Serve the index page.
     '''
 
-    log('Session Invalidation application requested', 'info')
+    try:
+        log('Session Invalidation application requested', logging.INFO)
+    except Exception as ex:
+        return {
+            'statusCode': 500,
+            'body': str(ex),
+        }
 
     try:
         index_page = static_content('index.html')
     except Exception as ex:
-        log(f'Failed to load index page from S3: ${ex}', 'exception')
+        log(f'Failed to load index page from S3: ${ex}', logging.CRITICAL)
         index_page = ERROR_PAGE.format(ex)
 
     return {
@@ -172,16 +187,16 @@ def static(event, context):
         'body': f'{filename} not found',
     }
 
-    log(f'Static file ${filename} requested', 'info')
+    log(f'Static file ${filename} requested', logging.INFO)
 
     if filename is None or '.' not in filename:
-        log(f'Static file ${filename} not valid', 'error')
+        log(f'Static file ${filename} not valid', logging.ERROR)
         return error_404
 
     try:
         content = static_content(filename)
     except:
-        log(f'Static file ${filename} not found', 'error')
+        log(f'Static file ${filename} not found', logging.ERROR)
         return error_404
 
     ext = filename.split('.')[-1]
@@ -218,19 +233,22 @@ def terminate(event, context):
     try:
         username = json.loads(event['body']).get('username')
     except:
-        log('Invalid request sent to terminate endpoint', 'error')
+        log('Invalid request sent to terminate endpoint', logging.ERROR)
         return error(400, 'Invalid body format. Expected JSON')
 
     if username is None:
-        log('Request sent to terminate endpoint with missing username', 'error')
+        log(
+            'Request sent to terminate endpoint with missing username',
+            logging.ERROR,
+        )
         return error(400, 'Missing `username` field')
 
-    log(f'Request to terminate sessions for ${username}', 'warning')
+    log(f'Request to terminate sessions for ${username}', logging.WARNING)
 
     try:
         config = load_config()
     except Exception as ex:
-        log('Failed to load configuration: ${ex}', 'exception')
+        log('Failed to load configuration: ${ex}', logging.CRITICAL)
         return error(500, 'Unable to load configuration')
 
     jobs = sesinv.sessions.configure_jobs(config)
@@ -251,7 +269,7 @@ def terminate(event, context):
 
     log(
         f'Terminated sessions for ${username}',
-        'warning',
+        logging.WARNING,
         username=username,
         result=result,
     )
