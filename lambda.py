@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import sys
 
@@ -26,6 +27,19 @@ ERROR_PAGE = '''<doctype HTML>
     </body>
 </html>
 '''
+
+
+logger = logging.getLogger()
+logger.getLogger().setLevel(os.environ.get('LOG_LEVEL', 'DEBUG'))
+logging.getLogger('boto3').propagate = False
+logging.getLogger('botocore').propagate = False
+
+
+def log(message, level='debug'):
+    '''Write a log message and an instrumentation event to SQS.
+    '''
+
+    logger.log(level, message)
 
 
 def static_content(filename):
@@ -103,9 +117,12 @@ def index(event, context):
     '''Serve the index page.
     '''
 
+    log('Session Invalidation application requested', 'info')
+
     try:
         index_page = static_content('index.html')
     except Exception as ex:
+        log(f'Failed to load index page from S3: ${ex}', 'exception')
         index_page = ERROR_PAGE.format(ex)
 
     return {
@@ -128,12 +145,16 @@ def static(event, context):
         'body': f'{filename} not found',
     }
 
+    log(f'Static file ${filename} requested', 'info')
+
     if filename is None or '.' not in filename:
+        log(f'Static file ${filename} not valid', 'error')
         return error_404
 
     try:
         content = static_content(filename)
     except:
+        log(f'Static file ${filename} not found', 'error')
         return error_404
 
     ext = filename.split('.')[-1]
@@ -170,14 +191,19 @@ def terminate(event, context):
     try:
         username = json.loads(event['body']).get('username')
     except:
+        log('Invalid request sent to terminate endpoint', 'error')
         return error(400, 'Invalid body format. Expected JSON')
 
     if username is None:
+        log('Request sent to terminate endpoint with missing username', 'error')
         return error(400, 'Missing `username` field')
+
+    log(f'Request to terminate sessions for ${username}', 'warning')
 
     try:
         config = load_config()
-    except:
+    except Exception as ex:
+        log('Failed to load configuration: ${ex}', 'exception')
         return error(500, 'Unable to load configuration')
 
     jobs = sesinv.sessions.configure_jobs(config)
@@ -194,9 +220,13 @@ def terminate(event, context):
             error=result.error,
         ))
 
+    result_json = sesinv.messages.Result(results).to_json()
+
+    log(f'Terminated sessions for ${username}', 'warning', extras=result_json)
+
     return {
         'statusCode': 200,
-        'body': json.dumps(sesinv.messages.Result(results).to_json()),
+        'body': json.dumps(result_json),
     }
 
 
