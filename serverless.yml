@@ -28,13 +28,6 @@ provider:
 #      Action:
 #        - sqs:SendMessage
 #      Resource: !GetAtt SQSToMozDef.Arn
-  Outputs:
-    StaticContentBucket:
-      Description: The URL of the S3 bucket used to host static content
-      Value:
-        Fn::GetAtt
-          - StaticContentBucket
-          - WebsiteURL
 resources:
   Resources:
     StaticContentBucket:
@@ -53,6 +46,31 @@ resources:
 #            Value: !Ref AWS::StackName
 #          - Key: source
 #            Value: https://github.com/mozilla/session-invalidation
+    SQSToMozDefReader:
+      Type: AWS::IAM::User
+      Properties:
+        Tags:
+          - Key: application
+            Value: session-invalidation
+          - Key: reader-for
+            Value: mozdef
+    SQSToMozDefReaderKey:
+      Type: AWS::IAM::AccessKey
+      Properties:
+        UserName: !Ref SQSToMozDefReader
+  Outputs:
+    StaticContentBucket:
+      Description: The URL of the S3 bucket used to host static content
+      Value:
+        Fn::GetAtt
+          - StaticContentBucket
+          - WebsiteURL
+    SQSToMozDefReaderAccessKey:
+      Description: The access key id belonging to the IAM user granting MozDef permission to read from SQS
+      Value: !Ref SQSToMozDefReaderKey
+    SQSToMozDefReaderSecretKey:
+      Description: The secret key belonging to the IAM user granting MozDef permission to read from SQS
+      Value: !GetAtt SQSToMozDefReaderKey.SecretAccessKey
 package:
   include:
     - sesinv/**
