@@ -1,4 +1,5 @@
 import urllib.parse
+import typing as types
 
 import requests
 
@@ -25,7 +26,7 @@ def get_openid_config(oid_cfg_uri: str) -> dict:
     '''Fetch the `.well-known/openid-configuration` file from a given URI.
     '''
 
-    return requests.get(oid_cfg_path).json()
+    return requests.get(oid_cfg_uri).json()
 
 
 def authorize_redirect_uri(auth_endpt, **kwargs) -> str:
