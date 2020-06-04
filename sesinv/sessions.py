@@ -179,12 +179,12 @@ def terminate_gsuite(bearer_token: str, endpt: str) -> IJob:
                 'changePasswordAtNextLogin': True,
             })
 
-            resp1_json = response1.json()
-
             response2 = requests.patch(url, headers=headers, json={
                 'changePasswordAtNextLogin': False,
             })
             
+            resp1_json = response1.json()
+
             resp2_json = response2.json()
         except Exception:
             return JobResult(

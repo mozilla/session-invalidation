@@ -1,6 +1,6 @@
 import unittest
 
-import mozilla_session_invalidation
+import sesinv
 
 
 if __name__ == '__main__':

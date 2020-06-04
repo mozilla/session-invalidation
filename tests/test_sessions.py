@@ -1,17 +1,30 @@
+from datetime import datetime, timedelta
 import unittest
 
 import requests_mock
 
-import mozilla_session_invalidation.session_invalidation as sesinv
+import sesinv.sessions as sessions
+import sesinv.authentication as auth
 
 
 class TestSessionInvalidators(unittest.TestCase):
     def test_terminate_sso_error_handling(self):
+        mock_creds = auth.SSOCreds(
+            client_id='test_id',
+            client_secret='test_secret',
+            auth_url='test.website.com',
+            audience='audience',
+            grant_type='grant',
+            _token='testtoken',
+            _expires=datetime.now() + timedelta(hours=1),
+        )
+
         with requests_mock.Mocker() as mock:
             mock.post(requests_mock.ANY, status_code=400)
 
-            terminate = sesinv.terminate_sso(
-                'testtoken',
+            terminate = sessions.terminate_sso(
+                mock_creds,
+                'ad|Mozilla-LDAP|{}',
                 'http://test.com/endpoint/{}',
             )
 
@@ -25,14 +38,25 @@ class TestSessionInvalidators(unittest.TestCase):
 
             assert result.error is not None
             assert 'Status 400' in result.error
-            assert result.new_state == sesinv.TerminationState.ERROR
+            assert result.new_state == sessions.TerminationState.ERROR
     
     def test_terminate_sso_success_case(self):
+        mock_creds = auth.SSOCreds(
+            client_id='test_id',
+            client_secret='test_secret',
+            auth_url='test.website.com',
+            audience='audience',
+            grant_type='grant',
+            _token='testtoken',
+            _expires=datetime.now() + timedelta(hours=1),
+        )
+
         with requests_mock.Mocker() as mock:
             mock.post(requests_mock.ANY, status_code=204)
 
-            terminate = sesinv.terminate_sso(
-                'testtoken',
+            terminate = sessions.terminate_sso(
+                mock_creds,
+                'ad|Mozilla-LDAP|{}',
                 'http://test.com/endpoint/{}',
             )
 
@@ -45,13 +69,17 @@ class TestSessionInvalidators(unittest.TestCase):
             assert history[0].url.endswith(e_url)
 
             assert result.error is None
-            assert result.new_state == sesinv.TerminationState.TERMINATED
+            assert result.new_state == sessions.TerminationState.TERMINATED
 
     def test_terminate_gsuite_error_handling(self):
         with requests_mock.Mocker() as mock:
-            mock.patch(requests_mock.ANY, status_code=400)
+            mock.patch(
+                requests_mock.ANY,
+                status_code=400,
+                json={'error': {'message': 'test fail'}},
+            )
 
-            terminate = sesinv.terminate_gsuite(
+            terminate = sessions.terminate_gsuite(
                 'testtoken',
                 'http://test.com/endpoint/{}',
             )
@@ -70,13 +98,13 @@ class TestSessionInvalidators(unittest.TestCase):
 
             assert result.error is not None
             assert 'Status 400' in result.error
-            assert result.new_state == sesinv.TerminationState.ERROR
+            assert result.new_state == sessions.TerminationState.ERROR
 
     def test_terminate_gsuite_success_case(self):
         with requests_mock.Mocker() as mock:
-            mock.patch(requests_mock.ANY, status_code=200)
+            mock.patch(requests_mock.ANY, status_code=200, json={})
 
-            terminate = sesinv.terminate_gsuite(
+            terminate = sessions.terminate_gsuite(
                 'testtoken',
                 'http://test.com/endpoint/{}',
             )
@@ -94,7 +122,7 @@ class TestSessionInvalidators(unittest.TestCase):
             assert history[1].json()['changePasswordAtNextLogin'] is False
 
             assert result.error is None
-            assert result.new_state == sesinv.TerminationState.TERMINATED
+            assert result.new_state == sessions.TerminationState.TERMINATED
 
     def test_terminate_slack_failed_user_lookup(self):
         with requests_mock.Mocker() as mock:
@@ -109,7 +137,7 @@ class TestSessionInvalidators(unittest.TestCase):
 
             mock.patch(requests_mock.ANY, status_code=400)
 
-            terminate = sesinv.terminate_slack(
+            terminate = sessions.terminate_slack(
                 'testtoken',
                 'http://test.com/lookupuser',
                 'http://test.com/updateuser',
@@ -124,7 +152,7 @@ class TestSessionInvalidators(unittest.TestCase):
 
             assert result.error is not None
             assert 'users_not_found' in result.error
-            assert result.new_state == sesinv.TerminationState.ERROR
+            assert result.new_state == sessions.TerminationState.ERROR
 
     def test_terminate_slack_error_handling(self):
         with requests_mock.Mocker() as mock:
@@ -142,9 +170,10 @@ class TestSessionInvalidators(unittest.TestCase):
             mock.patch(
                 'http://test.com/updateuser/testid123',
                 status_code=400,
+                json={'error': 'test error'},
             )
 
-            terminate = sesinv.terminate_slack(
+            terminate = sessions.terminate_slack(
                 'testtoken',
                 'http://test.com/lookupuser',
                 'http://test.com/updateuser',
@@ -160,7 +189,7 @@ class TestSessionInvalidators(unittest.TestCase):
 
             assert result.error is not None
             assert 'Status 400' in result.error
-            assert result.new_state == sesinv.TerminationState.ERROR
+            assert result.new_state == sessions.TerminationState.ERROR
 
     def test_terminate_slack_success_case(self):
         with requests_mock.Mocker() as mock:
@@ -177,9 +206,10 @@ class TestSessionInvalidators(unittest.TestCase):
             mock.patch(
                 'http://test.com/updateuser/testid123',
                 status_code=204,
+                json={},
             )
 
-            terminate = sesinv.terminate_slack(
+            terminate = sessions.terminate_slack(
                 'testtoken',
                 'http://test.com/lookupuser',
                 'http://test.com/updateuser',
@@ -194,4 +224,4 @@ class TestSessionInvalidators(unittest.TestCase):
             assert history[2].json()['active'] is True
 
             assert result.error is None
-            assert result.new_state == sesinv.TerminationState.TERMINATED
+            assert result.new_state == sessions.TerminationState.TERMINATED
