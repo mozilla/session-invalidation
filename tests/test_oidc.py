@@ -1,3 +1,4 @@
+import copy
 import unittest
 
 import requests_mock
@@ -25,3 +26,37 @@ class TestOIDCClient(unittest.TestCase):
 
             assert resp['token_endpoint'] == 'test.site.com/token'
             assert resp['authorization_endpoint'] == 'test.site.com/authorize'
+
+    def test_authorize_redirect_uri(self):
+        required = [
+            'state',
+            'scope',
+            'redirect_uri',
+            'client_id',
+        ]
+
+        params = {k: 'test' for k in required}
+
+        # Assert that all required fields are checked for
+        for req in required:
+            test_params = copy.deepcopy(params)
+            del test_params[req]
+
+            self.assertRaises(
+                oidc.MissingParameters,
+                oidc.authorize_redirect_uri,
+                'test.site.com/authorize',
+                **test_params,
+            )
+
+        uri = oidc.authorize_redirect_uri(
+            'test.site.com/authorize',
+            **params,
+        )
+
+        assert uri.startswith('test.site.com/authorize?')
+
+        for k, v in params.items():
+            assert f'{k}={v}' in uri
+
+        assert 'response_type=code' in uri
