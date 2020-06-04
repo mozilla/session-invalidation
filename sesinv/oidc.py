@@ -76,7 +76,7 @@ def retrieve_token(tkn_endpt: str, **kwargs) -> dict:
 
     res = requests.post(tkn_endpt, json=body)
 
-    token = res.json()
+    token = res.text
 
     if _valid_token(token):
         return _jwt_body(token)
