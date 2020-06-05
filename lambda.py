@@ -9,6 +9,7 @@ else:
     sys.path.append('lib')
 
 import boto3
+import ecdsa
 
 import sesinv
 
@@ -108,6 +109,7 @@ def load_config():
         'SSO_CLIENT_ID',
         'SSO_CLIENT_SECRET',
         'SLACK_TOKEN',
+        'SIGNING_KEY_ECDSA',
     ]
 
     # These are expected to be stored in environment variables when the
@@ -147,6 +149,45 @@ def load_config():
     })
 
     return config
+
+
+def generate_auth_cookie() -> str:
+    '''Generate a random string and sign it.  Produces a cryptographically
+    secure value that can be stored in a user's cookies and tested in
+    future requests.
+    '''
+
+    nonce = os.urandom(32)
+
+    config = load_config()
+
+    signing_key = ecdsa.SigningKey.from_pem(config['SIGNING_KEY_ECDSA'])
+
+    signature = signing_key.sign(nonce)
+
+    return f'{nonce.hex()_signature.hex()}'
+
+
+def validate_auth_cookie(auth_cookie: str) -> bool:
+    '''Validate the signature of a token stored in a user's cookie.  Must have
+    been geneated by `generate_auth_cookie`.
+    '''
+
+    parts = auth_cookie.split('_')
+
+    if len(parts) != 2:
+        return False
+
+    [nonce_str, signature_str] = parts
+    nonce = bytearray.fromhex(nonce_str)
+    signature_str = bytearray.fromhex(signature_str)
+
+    config = load_config()
+
+    signing_key = ecdsa.SigningKey.from_pem(config['SIGNING_KEY_ECDSA'])
+    verifying_key = signing_key.verifying_key
+
+    return verifying_key.verify(signature, nonce)
 
        
 def index(event, context):
