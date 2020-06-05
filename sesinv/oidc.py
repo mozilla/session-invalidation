@@ -30,7 +30,8 @@ def get_openid_config(oid_cfg_uri: str) -> dict:
 
 
 def authorize_redirect_uri(auth_endpt, **kwargs) -> str:
-    '''
+    '''Produce the authorize URI that should be redirected to with URL
+    parameters included.
     '''
 
     required = [
