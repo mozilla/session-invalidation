@@ -1,3 +1,4 @@
+import os
 import urllib.parse
 import typing as types
 
@@ -22,11 +23,22 @@ class MissingParameters(Exception):
         super().__init__(self.message)
 
 
-def get_openid_config(oid_cfg_uri: str) -> dict:
-    '''Fetch the `.well-known/openid-configuration` file from a given URI.
+def discovery_document(discovery_url: str) -> dict:
+    '''Retrieve the discovery document provided by the OIDC OP.
+    When the document is stored in the cache of the instance running the
+    function, retrieve it from there.  Otherwise fetch it from the OP
+    and append JSON Web Key Set data to it.
     '''
 
-    return requests.get(oid_cfg_uri).json()
+    global global_discovery_doc
+
+    if 'global_discovery_doc' not in globals():
+        global_discovery_doc = requests.get(discovery_url).json()
+
+        jwks_uri = global_discovery_doc['jwks_uri']
+        global_discovery_doc['jwks'] = requests.get(jwks_uri).json()
+
+    return global_discovery_doc
 
 
 def authorize_redirect_uri(auth_endpt, **kwargs) -> str:

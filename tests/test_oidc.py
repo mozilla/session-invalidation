@@ -1,4 +1,5 @@
 import copy
+import os
 import unittest
 from unittest.mock import patch
 
@@ -8,25 +9,42 @@ import sesinv.oidc as oidc
 
 
 class TestOIDCClient(unittest.TestCase):
-    def test_get_openid_config(self):
+    def test_discovery_document(self):
+        discovery_url = 'http://test.site.com/.well-known/oidc-configuration'
+
         with requests_mock.Mocker() as mock:
             mock.get(
-                'http://test.site.com/.well-known/openid-configuration',
+                discovery_url,
                 json={
-                    'token_endpoint': 'test.site.com/token',
-                    'authorization_endpoint': 'test.site.com/authorize',
+                    'test': 123,
+                    'jwks_uri': 'http://test.site.com/jwks',
                 },
             )
 
-            resp = oidc.get_openid_config(
-                'http://test.site.com/.well-known/openid-configuration',
+            mock.get(
+                'http://test.site.com/jwks',
+                json={'keys': [{'a': 1}, {'a': 2}]},
             )
 
-            history = mock.request_history
-            assert len(history) == 1
+            doc = oidc.discovery_document(discovery_url)
 
-            assert resp['token_endpoint'] == 'test.site.com/token'
-            assert resp['authorization_endpoint'] == 'test.site.com/authorize'
+            assert doc['test'] == 123
+            assert 'keys' in doc['jwks']
+            assert doc['jwks']['keys'][0]['a'] == 1
+            assert doc['jwks']['keys'][1]['a'] == 2
+
+            doc = oidc.discovery_document(discovery_url)
+
+            assert doc['test'] == 123
+            assert 'keys' in doc['jwks']
+            assert doc['jwks']['keys'][0]['a'] == 1
+            assert doc['jwks']['keys'][1]['a'] == 2
+
+            # Expect one request for the top-level document then another
+            # for the JWKS.  If the caching strategy didn't work we'd see
+            # four requests total.
+            assert len(mock.request_history) == 2
+
 
     def test_authorize_redirect_uri(self):
         required = [
