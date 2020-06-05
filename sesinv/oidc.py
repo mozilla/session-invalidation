@@ -96,6 +96,7 @@ def retrieve_token(tkn_endpt: str, **kwargs) -> dict:
     else:
         raise InvalidToken()
 
+
 def _valid_token(jwt: str) -> bool:
     return True
 
