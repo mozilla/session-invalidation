@@ -1,12 +1,14 @@
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from http import cookies
+import os
 import typing as types
 
 import ecdsa
 import requests
 
 
-AUTH_COOKIE_NAME = 'user_session'
+USER_COOKIE_KEY = 'user_session'
 
 
 class Error(Exception):
@@ -83,12 +85,10 @@ def generate_auth_cookie(signing_key_pem: str) -> str:
     secure value that can be stored in a user's cookies and tested in
     future requests.
 
-    The cookie generated should be stored under the `AUTH_COOKIE_NAME` key.
+    The cookie generated should be stored under the `USER_COOKIE_KEY` key.
     '''
 
     nonce = os.urandom(32)
-
-    config = load_config()
 
     signing_key = ecdsa.SigningKey.from_pem(signing_key_pem)
 
@@ -100,12 +100,12 @@ def generate_auth_cookie(signing_key_pem: str) -> str:
 def user_is_authenticated(signing_key_pem: str, cookie_header: str) -> bool:
     '''Validate the signature of a token stored in a user's cookie.  Must have
     been geneated by `generate_auth_cookie` and is assumed to have been stored
-    under the `AUTH_COOKIE_NAME` key in the cookie string.
+    under the `USER_COOKIE_KEY` key in the cookie string.
     '''
 
     cookie = cookies.SimpleCookie()
     cookie.load(cookie_header)
-    morsel = cookie.get(AUTH_COOKIE_NAME)
+    morsel = cookie.get(USER_COOKIE_KEY)
 
     if morsel is None:
         return False
@@ -118,12 +118,12 @@ def user_is_authenticated(signing_key_pem: str, cookie_header: str) -> bool:
 
     [nonce_str, signature_str] = parts
     nonce = bytearray.fromhex(nonce_str)
-    signature_str = bytearray.fromhex(signature_str)
-
-    config = load_config()
+    signature = bytearray.fromhex(signature_str)
 
     signing_key = ecdsa.SigningKey.from_pem(signing_key_pem)
     verifying_key = signing_key.verifying_key
 
-    return verifying_key.verify(signature, nonce)
-
+    try:
+        return verifying_key.verify(signature, nonce)
+    except ecdsa.keys.BadSignatureError:
+        return False
