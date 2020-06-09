@@ -102,6 +102,10 @@ functions:
     handler: lambda.index
     events:
       - http: get /
+  oidc_callback:
+    handler: lambda.callback
+    events:
+      - http: get /callback
   static:
     handler: lambda.static
     events:

@@ -1,3 +1,4 @@
+from http import cookies
 import json
 import logging
 import os
@@ -17,7 +18,7 @@ STATIC_CONTENT_BUCKET_NAME = 'session-invalidation-static-content'
 SECRETS_SSM_PARAMETER = 'session-invalidation-secrets'
 
 USER_SESSION_COOKIE_KEY = 'user-session'
-USER_NAME_COOKIE_KEY = 'user-name'
+USER_JWT_COOKIE_KEY = 'user-jwt'
 
 ERROR_PAGE = '''<doctype HTML>
 <html>
@@ -166,7 +167,12 @@ def user_is_authenticated(cookie_header: str) -> bool:
     if morsel is None:
         return False
 
-    return sesinv.authentication.validate_auth_cookie(morsel.value)
+    config = load_config()
+
+    return sesinv.authentication.validate_auth_cookie(
+        config['SIGNING_KEY_ECDSA'],
+        morsel.value,
+    )
 
 
 def echo(event, context):
@@ -188,18 +194,72 @@ def index(event, context):
 
     log('Session Invalidation application requested', logging.INFO)
 
+    cookie_str = event.get('headers', {}).get('Cookie', '')
+
     try:
-        index_page = static_content('index.html')
+        if user_is_authenticated(cookie_str):
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'text/html',
+                },
+                'body': static_content('index.html'),
+            }
+        else:
+            # TODO: Actually route to OIDC Provider.
+            return {
+                'statusCode': 302,
+                'headers': {
+                    'Content-Type': 'text/plain',
+                    'Location': '/dev/callback',
+                },
+                'body': 'Redirecting to authentication callback (TODO: OIDC)',
+            }
     except Exception as ex:
         log(f'Failed to load index page from S3: {ex}', logging.CRITICAL)
-        index_page = ERROR_PAGE.format(ex)
+
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'text/html',
+            },
+            'body': ERROR_PAGE.format(ex),
+        }
+
+
+def callback(event, context):
+    '''Handle redirects back to the applciation by the OIDC Provider (OP).
+    '''
+
+    try:
+        config = load_config()
+    except:
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'text/plain',
+            },
+            'body': 'Failed to load application configuration',
+        }
+
+    user_token = sesinv.authentication.generate_auth_cookie(
+        config['SESSION_SIGNING_KEY'],
+    )
+
+    cookies = [
+        f'{USER_SESSION_COOKIE_KEY}={user_token}',
+        f'{USER_JWT_COOKIE_KEY}=abcdef.1230123.fedcba',
+        'Max-Age=86400',
+    ]
 
     return {
-        'statusCode': 200,
+        'statusCode': 302,
         'headers': {
-            'Content-Type': 'text/html',
+            'Content-Type': 'text/plain',
+            'Location': '/dev',
+            'Set-Cookie': '; '.join(cookies),
         },
-        'body': index_page,
+        'body': 'Redirecting to application index.',
     }
 
 
@@ -256,8 +316,19 @@ def terminate(event, context):
                 sesinv.messages.Error(msg).to_json(),
             ),
         }
+    
+    cookie_str = event.get('headers', {}).get('Cookie', '')
 
     try:
+        if not user_is_authenticated(cookie_str):
+            return {
+                'statusCode': 403,
+                'headers': {
+                    'Content-Type': 'application/json',
+                },
+                'body': '{"error": "Forbidden"}',
+            }
+
         username = json.loads(event['body']).get('username')
     except:
         log('Invalid request sent to terminate endpoint', logging.ERROR)

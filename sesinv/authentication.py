@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from http import cookies
 import os
 import typing as types
 
