@@ -150,6 +150,20 @@ def load_config():
     return config
 
 
+def user_is_authenticated(cookie_header: str) -> bool:
+    '''
+    '''
+    
+    cookie = cookies.SimpleCookie()
+    cookie.load(cookie_header)
+    morsel = cookie.get(USER_SESSION_COOKIE_KEY)
+
+    if morsel is None:
+        return False
+
+    return sesinv.authentication.validate_auth_cookie(morsel.value)
+
+
 def echo(event, context):
     '''Echo the event data received.
     '''

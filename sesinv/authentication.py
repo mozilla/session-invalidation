@@ -84,8 +84,6 @@ def generate_auth_cookie(signing_key_pem: str) -> str:
     '''Generate a random string and sign it.  Produces a cryptographically
     secure value that can be stored in a user's cookies and tested in
     future requests.
-
-    The cookie generated should be stored under the `USER_COOKIE_KEY` key.
     '''
 
     nonce = os.urandom(32)
@@ -97,20 +95,10 @@ def generate_auth_cookie(signing_key_pem: str) -> str:
     return f'{nonce.hex()}_{signature.hex()}'
 
 
-def user_is_authenticated(signing_key_pem: str, cookie_header: str) -> bool:
-    '''Validate the signature of a token stored in a user's cookie.  Must have
-    been geneated by `generate_auth_cookie` and is assumed to have been stored
-    under the `USER_COOKIE_KEY` key in the cookie string.
+def validate_auth_cookie(signing_key_pem: str, auth_cookie: str) -> bool:
+    '''Validate the signature of a token stored in a user's cookie.
     '''
 
-    cookie = cookies.SimpleCookie()
-    cookie.load(cookie_header)
-    morsel = cookie.get(USER_COOKIE_KEY)
-
-    if morsel is None:
-        return False
-
-    auth_cookie = morsel.value
     parts = auth_cookie.split('_')
 
     if len(parts) != 2:

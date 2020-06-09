@@ -21,28 +21,19 @@ class TestUserAuthentication(unittest.TestCase):
         assert all([c in string.hexdigits for c in nonce])
         assert all([c in string.hexdigits for c in signature])
 
-    def test_user_is_authenticated_validates_good_signatures(self):
-        cookie_value = auth.generate_auth_cookie(SIGNING_KEY)
+    def test_validate_auth_cookie_validates_good_signatures(self):
+        auth_cookie = auth.generate_auth_cookie(SIGNING_KEY)
 
-        cookie_header = f'{auth.USER_COOKIE_KEY}={cookie_value}'
+        assert auth.validate_auth_cookie(SIGNING_KEY, auth_cookie)
 
-        assert auth.user_is_authenticated(SIGNING_KEY, cookie_header)
+    def test_validate_auth_cookie_invalidates_poorly_formatted_value(self):
+        auth_cookie1 = f'too_many_underscores'
+        auth_cookie2 = f'toofewunderscores'
 
-    def test_user_is_authenticated_invalidates_missing_cookie(self):
-        cookie_value = auth.generate_auth_cookie(SIGNING_KEY)
-
-        cookie_header = f'nottherightkey={cookie_value}'
-
-        assert not auth.user_is_authenticated(SIGNING_KEY, cookie_header)
+        assert not auth.validate_auth_cookie(SIGNING_KEY, auth_cookie1)
+        assert not auth.validate_auth_cookie(SIGNING_KEY, auth_cookie2)
     
-    def test_user_is_authenticated_invalidates_poorly_formatted_value(self):
-        cookie_header1 = f'{auth.USER_COOKIE_KEY}=too_many_underscores'
-        cookie_header2 = f'{auth.USER_COOKIE_KEY}=toofewunderscores'
+    def test_validate_auth_cookie_invalidates_invalid_signature(self):
+        auth_cookie = f'abcdef_123def'
 
-        assert not auth.user_is_authenticated(SIGNING_KEY, cookie_header1)
-        assert not auth.user_is_authenticated(SIGNING_KEY, cookie_header2)
-    
-    def test_user_is_authenticated_invalidates_invalid_signature(self):
-        cookie_header = f'{auth.USER_COOKIE_KEY}=abcdef_123def'
-
-        assert not auth.user_is_authenticated(SIGNING_KEY, cookie_header)
+        assert not auth.validate_auth_cookie(SIGNING_KEY, auth_cookie)
