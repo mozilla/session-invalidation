@@ -94,6 +94,10 @@ package:
     - sesinv/**
     - lib/**
 functions:
+  echo:
+    handler: lambda.echo
+    events:
+      - http: get /echo
   index:
     handler: lambda.index
     events:

@@ -150,6 +150,19 @@ def load_config():
     return config
 
 
+def echo(event, context):
+    '''Echo the event data received.
+    '''
+
+    return {
+        'statusCode': 200,
+        'headers': {
+            'Content-Type': 'application/json',
+        },
+        'body': json.dumps(event),
+    }
+
+
 def index(event, context):
     '''Serve the index page.
     '''
