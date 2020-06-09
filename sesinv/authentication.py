@@ -76,7 +76,7 @@ class SSOCreds:
         self._expires = datetime.utcnow() + valid_for
 
 
-def generate_auth_cookie(signing_key_pem: str) -> str:
+def generate_auth_cookie(signing_key_hex: str) -> str:
     '''Generate a random string and sign it.  Produces a cryptographically
     secure value that can be stored in a user's cookies and tested in
     future requests.
@@ -84,14 +84,16 @@ def generate_auth_cookie(signing_key_pem: str) -> str:
 
     nonce = os.urandom(32)
 
-    signing_key = ecdsa.SigningKey.from_pem(signing_key_pem)
+    signing_key = ecdsa.SigningKey.from_string(
+        bytearray.fromhex(signing_key_hex),
+    )
 
     signature = signing_key.sign(nonce)
 
     return f'{nonce.hex()}_{signature.hex()}'
 
 
-def validate_auth_cookie(signing_key_pem: str, auth_cookie: str) -> bool:
+def validate_auth_cookie(signing_key_hex: str, auth_cookie: str) -> bool:
     '''Validate the signature of a token stored in a user's cookie.
     '''
 
@@ -104,7 +106,9 @@ def validate_auth_cookie(signing_key_pem: str, auth_cookie: str) -> bool:
     nonce = bytearray.fromhex(nonce_str)
     signature = bytearray.fromhex(signature_str)
 
-    signing_key = ecdsa.SigningKey.from_pem(signing_key_pem)
+    signing_key = ecdsa.SigningKey.from_string(
+        bytearray.fromhex(signing_key_hex),
+    )
     verifying_key = signing_key.verifying_key
 
     try:

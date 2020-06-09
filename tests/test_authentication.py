@@ -3,11 +3,9 @@ import unittest
 
 import sesinv.authentication as auth
 
-        
-SIGNING_KEY = b'-----BEGIN EC PRIVATE KEY-----\nMF8CAQEEGGIHgr11'\
-    b'q2RVEIZmNhUJyrlSV8eWDrBnfaAKBggqhkjOPQMBAaE0AzIA\nBGnwt4Z+U6hwR'\
-    b'Ue1uJgfT+GRbK2J7vw2FcTQLpF6ohBZXVlS4O373eGvWFM8IMB/\nLQ==\n----'\
-    b'-END EC PRIVATE KEY-----\n'
+
+# Generated with `ecdsa.SigningKey.generate().to_string().hex()`.
+SIGNING_KEY = '9abf8f73a7731d164e925520eac9a450263810a37d6ac446'
 
 
 class TestUserAuthentication(unittest.TestCase):
