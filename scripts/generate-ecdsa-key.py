@@ -6,4 +6,4 @@ import ecdsa
 
 sk = ecdsa.SigningKey.generate()
 
-print(sk.to_pem().decode('utf-8'))
+print(sk.to_string().hex())
