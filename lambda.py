@@ -16,6 +16,9 @@ import sesinv
 STATIC_CONTENT_BUCKET_NAME = 'session-invalidation-static-content'
 SECRETS_SSM_PARAMETER = 'session-invalidation-secrets'
 
+USER_SESSION_COOKIE_KEY = 'user-session'
+USER_NAME_COOKIE_KEY = 'user-name'
+
 ERROR_PAGE = '''<doctype HTML>
 <html>
     <head>
@@ -151,7 +154,9 @@ def load_config():
 
 
 def user_is_authenticated(cookie_header: str) -> bool:
-    '''
+    '''Veirfy that there is a `USER_SESSION_COOKIE_KEY` key in the user's
+    cookie and that it contains a valid, signed nonce value generated as a
+    result of completing authentication.
     '''
     
     cookie = cookies.SimpleCookie()

@@ -8,9 +8,6 @@ import ecdsa
 import requests
 
 
-USER_COOKIE_KEY = 'user_session'
-
-
 class Error(Exception):
     '''A generic container type for an error message that can be raised during
     the process of attempting to perform authentication.
