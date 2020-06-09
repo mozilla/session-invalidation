@@ -243,7 +243,7 @@ def callback(event, context):
         }
 
     user_token = sesinv.authentication.generate_auth_cookie(
-        config['SESSION_SIGNING_KEY'],
+        config['SIGNING_KEY_ECDSA'],
     )
 
     cookies = [
