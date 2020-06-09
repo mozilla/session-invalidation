@@ -17,6 +17,8 @@ import sesinv
 STATIC_CONTENT_BUCKET_NAME = 'session-invalidation-static-content'
 SECRETS_SSM_PARAMETER = 'session-invalidation-secrets'
 
+AUTH_COOKIE_NAME = 'user_session'
+
 ERROR_PAGE = '''<doctype HTML>
 <html>
     <head>
@@ -155,6 +157,8 @@ def generate_auth_cookie() -> str:
     '''Generate a random string and sign it.  Produces a cryptographically
     secure value that can be stored in a user's cookies and tested in
     future requests.
+
+    The cookie generated should be stored under the `AUTH_COOKIE_NAME` key.
     '''
 
     nonce = os.urandom(32)
@@ -165,14 +169,23 @@ def generate_auth_cookie() -> str:
 
     signature = signing_key.sign(nonce)
 
-    return f'{nonce.hex()_signature.hex()}'
+    return f'{nonce.hex()}_{signature.hex()}'
 
 
-def validate_auth_cookie(auth_cookie: str) -> bool:
+def user_is_authenticated(cookie_header: str) -> bool:
     '''Validate the signature of a token stored in a user's cookie.  Must have
-    been geneated by `generate_auth_cookie`.
+    been geneated by `generate_auth_cookie` and is assumed to have been stored
+    under the `AUTH_COOKIE_NAME` key in the cookie string.
     '''
 
+    cookie = cookies.SimpleCookie()
+    cookie.load(cookie_header)
+    morsel = cookie.get(AUTH_COOKIE_NAME)
+
+    if morsel is None:
+        return False
+
+    auth_cookie = morsel.value
     parts = auth_cookie.split('_')
 
     if len(parts) != 2:
