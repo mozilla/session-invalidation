@@ -2,7 +2,11 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 import typing as types
 
+import ecdsa
 import requests
+
+
+AUTH_COOKIE_NAME = 'user_session'
 
 
 class Error(Exception):
@@ -72,3 +76,54 @@ class SSOCreds:
         self._token = resp_json['access_token']
 
         self._expires = datetime.utcnow() + valid_for
+
+
+def generate_auth_cookie() -> str:
+    '''Generate a random string and sign it.  Produces a cryptographically
+    secure value that can be stored in a user's cookies and tested in
+    future requests.
+
+    The cookie generated should be stored under the `AUTH_COOKIE_NAME` key.
+    '''
+
+    nonce = os.urandom(32)
+
+    config = load_config()
+
+    signing_key = ecdsa.SigningKey.from_pem(config['SIGNING_KEY_ECDSA'])
+
+    signature = signing_key.sign(nonce)
+
+    return f'{nonce.hex()}_{signature.hex()}'
+
+
+def user_is_authenticated(cookie_header: str) -> bool:
+    '''Validate the signature of a token stored in a user's cookie.  Must have
+    been geneated by `generate_auth_cookie` and is assumed to have been stored
+    under the `AUTH_COOKIE_NAME` key in the cookie string.
+    '''
+
+    cookie = cookies.SimpleCookie()
+    cookie.load(cookie_header)
+    morsel = cookie.get(AUTH_COOKIE_NAME)
+
+    if morsel is None:
+        return False
+
+    auth_cookie = morsel.value
+    parts = auth_cookie.split('_')
+
+    if len(parts) != 2:
+        return False
+
+    [nonce_str, signature_str] = parts
+    nonce = bytearray.fromhex(nonce_str)
+    signature_str = bytearray.fromhex(signature_str)
+
+    config = load_config()
+
+    signing_key = ecdsa.SigningKey.from_pem(config['SIGNING_KEY_ECDSA'])
+    verifying_key = signing_key.verifying_key
+
+    return verifying_key.verify(signature, nonce)
+
