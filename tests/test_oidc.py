@@ -10,7 +10,7 @@ import sesinv.oidc as oidc
 
 class TestOIDCClient(unittest.TestCase):
     def test_discovery_document(self):
-        discovery_url = 'http://test.site.com/.well-known/oidc-configuration'
+        discovery_url = 'http://test.oidc.com/.well-known/oidc-configuration'
 
         with requests_mock.Mocker() as mock:
             mock.get(
