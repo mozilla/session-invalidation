@@ -32,11 +32,16 @@ def discovery_document(discovery_url: str) -> dict:
 
     global global_discovery_doc
 
-    if 'global_discovery_doc' not in globals():
+    cached = 'global_discovery_doc' in globals() 
+
+    # Update the discovery document if we request one from a new URL.
+    # Mostly just for testing purposes.
+    if not cached or global_discovery_doc['discovery_url'] != discovery_url:
         global_discovery_doc = requests.get(discovery_url).json()
 
         jwks_uri = global_discovery_doc['jwks_uri']
         global_discovery_doc['jwks'] = requests.get(jwks_uri).json()
+        global_discovery_doc['discovery_url'] = discovery_url
 
     return global_discovery_doc
 
