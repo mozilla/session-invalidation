@@ -14,7 +14,10 @@ main = importlib.import_module('lambda')
 
 
 def load_test_env_vars(**kwargs):
-    keys = {
+    keys = [
+        'OIDC_CLIENT_ID',
+        'OIDC_DISCOVERY_URI',
+        'OIDC_SCOPES',
         'SSO_CLIENT_SECRET',
         'SLACK_TOKEN',
         'SIGNING_KEY_ECDSA',
@@ -28,7 +31,7 @@ def load_test_env_vars(**kwargs):
         'GSUITE_USERS_ENDPT',
         'SLACK_LOOKUP_USER_ENDPT',
         'SLACK_SCIM_USERS_ENDPT',
-    }
+    ]
 
     defaults = {k: '' for k in keys}
 
@@ -84,7 +87,11 @@ class TestOIDCClientFlow(unittest.TestCase):
         location = response['headers']['Location']
 
         assert response['statusCode'] == 302
-        assert location == discovery_doc['authorization_endpoint']
+        assert discovery_doc['authorization_endpoint'] in location
+        assert 'state' in location
+        assert 'scope' in location
+        assert 'redirect_uri' in location
+        assert 'client_id' in location
 
     @patch('lambda.load_config')
     def test_no_redirect_for_authenticated_user(self, load_config_mock):
