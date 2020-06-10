@@ -122,6 +122,7 @@ def load_config():
         'SSO_AUDIENCE',
         'SSO_GRANT_TYPE',
         'SSO_ID_FORMAT',
+        'SQS_QUEUE_URL',
         'MOZ_OAUTH_ENDPT',
         'GSUITE_USERS_ENDPT',
         'SLACK_LOOKUP_USER_ENDPT',
