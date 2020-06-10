@@ -5,6 +5,7 @@ provider:
   stage: dev
   region: us-west-2
   environment:
+    SSO_CLIENT_ID: 'eJPgs0CNdtyDW0bWTMByMb3Pan1F8n6n'
     MOZ_OAUTH_ENDPT: 'https://auth-dev.mozilla.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser'
     GSUITE_USERS_ENDPT: 'https://www.googleapis.com/admin/directory/v1/users/{}'
     SLACK_LOOKUP_USER_ENDPT: 'https://slack.com/api/users.lookupByEmail'

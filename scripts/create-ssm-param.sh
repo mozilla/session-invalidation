@@ -8,11 +8,6 @@ SIGNING_KEY_ECDSA="$(python scripts/generate-ecdsa-key.py)"
 if test -z "$ARN"; then
   # Echo error to stderr if a required environment variable is missing
 
-  if test -z "$SSO_CLIENT_ID"; then
-    >&2 echo "!!! Environment variable SSO_CLIENT_ID not set !!!";
-    exit 1;
-  fi
-
   if test -z "$SSO_CLIENT_SECRET"; then
     >&2 echo "!!! Environment variable SSO_CLIENT_SECRET not set !!!";
     exit 1;
@@ -23,7 +18,7 @@ if test -z "$ARN"; then
     exit 1;
   fi
   
-  SECRETS="SSO_CLIENT_ID=$SSO_CLIENT_ID,SSO_CLIENT_SECRET=$SSO_CLIENT_SECRET,SLACK_TOKEN=$SLACK_TOKEN,SIGNING_KEY_ECDSA=$SIGNING_KEY_ECDSA" 
+  SECRETS="SSO_CLIENT_SECRET=$SSO_CLIENT_SECRET,SLACK_TOKEN=$SLACK_TOKEN,SIGNING_KEY_ECDSA=$SIGNING_KEY_ECDSA" 
 
   aws ssm put-parameter \
     --name $PARAMETER_NAME \

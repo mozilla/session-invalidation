@@ -109,7 +109,6 @@ def load_config():
     # These are expected to be found in SSM and then loaded into environment
     # variables to avoid reading from SSM too often.  Env vars are encrypted.
     secret_cfg_keys = [
-        'SSO_CLIENT_ID',
         'SSO_CLIENT_SECRET',
         'SLACK_TOKEN',
         'SIGNING_KEY_ECDSA',
@@ -118,6 +117,7 @@ def load_config():
     # These are expected to be stored in environment variables when the
     # function is deployed.
     non_secret_cfg_keys = [
+        'SSO_CLIENT_ID',
         'SSO_AUTH_URL',
         'SSO_AUDIENCE',
         'SSO_GRANT_TYPE',
