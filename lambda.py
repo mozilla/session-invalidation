@@ -19,6 +19,7 @@ SECRETS_SSM_PARAMETER = 'session-invalidation-secrets'
 
 USER_SESSION_COOKIE_KEY = 'user-session'
 USER_JWT_COOKIE_KEY = 'user-jwt'
+USER_STATE_COOKIE_KEY = 'user-state'
 
 ERROR_PAGE = '''<doctype HTML>
 <html>
@@ -117,6 +118,9 @@ def load_config():
     # These are expected to be stored in environment variables when the
     # function is deployed.
     non_secret_cfg_keys = [
+        'OIDC_CLIENT_ID',
+        'OIDC_DISCOVERY_URI',
+        'OIDC_SCOPES',
         'SSO_CLIENT_ID',
         'SSO_AUTH_URL',
         'SSO_AUDIENCE',
@@ -207,12 +211,26 @@ def index(event, context):
                 'body': static_content('index.html'),
             }
         else:
-            # TODO: Actually route to OIDC Provider.
+            discovery = sesinv.oidc.discovery_document(
+                os.environ['OIDC_DISCOVERY_URI'],
+            )
+
+            state = os.urandom(32).hex()
+
+            authorize_endpoint = sesinv.oidc.authorize_redirect_uri(
+                discovery['authorization_endpoint'],
+                state=state,
+                scope=os.environ['OIDC_SCOPES'],
+                redirect_uri='/callback',
+                client_id=os.environ['OIDC_CLIENT_ID'],
+            )
+
             return {
                 'statusCode': 302,
                 'headers': {
                     'Content-Type': 'text/plain',
-                    'Location': '/dev/callback',
+                    'Location': authorize_endpoint,
+                    'Cookie': f'{USER_STATE_COOKIE_KEY}={state}',
                 },
                 'body': 'Redirecting to authentication callback (TODO: OIDC)',
             }
