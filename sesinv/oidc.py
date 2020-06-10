@@ -3,6 +3,7 @@ import urllib.parse
 import typing as types
 
 import requests
+import jwt
 
 
 CODE_RESPONSE_TYPE = 'code'
@@ -10,8 +11,9 @@ CODE_GRANT_TYPE = 'authorization_code'
 
 
 class InvalidToken(Exception):
-    def __init__(self):
-        self.message = 'Invalid ID token'
+    def __init__(self, cause):
+        self.message = f'Invalid ID token: {cause}'
+        self.cause = cause
 
         super().__init__(self.message)
 
@@ -73,7 +75,7 @@ def authorize_redirect_uri(auth_endpt, **kwargs) -> str:
     return f'{auth_endpt}?{urllib.parse.urlencode(params)}'
 
 
-def retrieve_token(tkn_endpt: str, **kwargs) -> dict:
+def retrieve_token(tkn_endpt: str, pubkey: str, **kwargs) -> dict:
     '''Authenticate to an OIDC Provider and validate the token retrieved,
     returning the body of the JWT.
     '''
@@ -84,6 +86,8 @@ def retrieve_token(tkn_endpt: str, **kwargs) -> dict:
 
     if len(missing) > 0:
         raise MissingParameters(missing)
+
+    algorithms = kwargs.get('jwt_algorithms', ['RSA256'])
 
     body = {
         key: kwargs[key]
@@ -96,15 +100,7 @@ def retrieve_token(tkn_endpt: str, **kwargs) -> dict:
 
     token = res.text
 
-    if _valid_token(token):
-        return _jwt_body(token)
-    else:
-        raise InvalidToken()
-
-
-def _valid_token(jwt: str) -> bool:
-    return True
-
-
-def _jwt_body(jwt: str) -> dict:
-    return {}
+    try:
+        return jwt.decode(res.text, pubkey, algorithms=algorithms)
+    except Exception as cause:
+        raise InvalidToken(cause)

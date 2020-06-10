@@ -99,12 +99,15 @@ class TestOIDCClient(unittest.TestCase):
                 oidc.MissingParameters,
                 oidc.retrieve_token,
                 'test.site.com/token',
+                'pubkey',
                 **test_params,
             )
 
-    @patch('sesinv.oidc._valid_token')
-    def test_retrieve_token_validates_jwts(self, mock_valid_token):
-        mock_valid_token.return_value = True
+    @patch('jwt.decode')
+    def test_retrieve_token_validates_jwts(self, mock_decode):
+        test_jwt = 'headers.claims.signature'
+
+        mock_decode.return_value = 'claims'
         
         required = [
             'client_id',
@@ -116,23 +119,24 @@ class TestOIDCClient(unittest.TestCase):
         params = {k: 'test' for k in required}
 
         with requests_mock.Mocker() as mock:
-            mock.post('http://test.site.com/token', text='jwt_str')
+            mock.post('http://test.site.com/token', text=test_jwt)
 
             jwt_body = oidc.retrieve_token(
                 'http://test.site.com/token',
+                'pubkey',
                 **params,
             )
 
-            mock_valid_token.assert_called_once_with('jwt_str')
+            mock_decode.assert_called_once_with(test_jwt, 'pubkey', algorithms=['RSA256'])
 
-            assert jwt_body == {}
+            assert jwt_body == 'claims'
 
             history = mock.request_history
             assert len(history) == 1
 
-    @patch('sesinv.oidc._valid_token')
-    def test_retrieve_token_throws_on_invalid_jwt(self, mock_valid_token):
-        mock_valid_token.return_value = False
+    @patch('jwt.decode')
+    def test_retrieve_token_throws_on_invalid_jwt(self, mock_decode):
+        mock_decode.side_effect = oidc.InvalidToken('test')
         
         required = [
             'client_id',
@@ -150,10 +154,11 @@ class TestOIDCClient(unittest.TestCase):
                 oidc.InvalidToken,
                 oidc.retrieve_token,
                 'http://test.site.com/token',
+                'pubkey',
                 **params,
             )
             
-            mock_valid_token.assert_called_once_with('jwt_str')
+            mock_decode.assert_called_once_with('jwt_str', 'pubkey', algorithms=['RSA256'])
             
             history = mock.request_history
             assert len(history) == 1
