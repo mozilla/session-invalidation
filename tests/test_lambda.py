@@ -1,6 +1,7 @@
 import importlib
 import os
 import unittest
+from unittest.mock import patch
 
 import requests_mock
 
@@ -19,6 +20,7 @@ def load_test_env_vars(**kwargs):
         'SSO_AUDIENCE',
         'SSO_GRANT_TYPE',
         'SSO_ID_FORMAT',
+        'SQS_QUEUE_URL',
         'MOZ_OAUTH_ENDPT',
         'GSUITE_USERS_ENDPT',
         'SLACK_LOOKUP_USER_ENDPT',
@@ -32,6 +34,7 @@ def load_test_env_vars(**kwargs):
     os.environ.update(defaults)
 
 
+@patch('lambda.log', lambda _, __: None)
 class TestOIDCClientFlow(unittest.TestCase):
     '''Unit tests for the OIDC client flow which is facilitated by the
     session invalidation application's own API.
