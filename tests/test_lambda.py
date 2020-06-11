@@ -215,11 +215,8 @@ class TestOIDCClientFlow(unittest.TestCase):
 
             response = main.callback(event, None)
 
-        cookies = response['headers']['Set-Cookie']
-
         assert response['statusCode'] == 400
-        assert main.USER_JWT_COOKIE_KEY not in cookies
-        assert main.USER_SESSION_COOKIE_KEY not in cookies
+        assert 'Set-Cookie' not in response['headers']
     
     @patch('lambda.load_config')
     def test_error_upon_invalid_jwt(self, load_config_mock):
@@ -253,8 +250,5 @@ class TestOIDCClientFlow(unittest.TestCase):
 
             response = main.callback(event, None)
 
-        cookies = response['headers']['Set-Cookie']
-
         assert response['statusCode'] == 400
-        assert main.USER_JWT_COOKIE_KEY in cookies
-        assert main.USER_SESSION_COOKIE_KEY in cookies
+        assert 'Set-Cookie' not in response['headers']
