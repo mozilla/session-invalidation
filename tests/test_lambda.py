@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import patch
 
 import ecdsa
+import jwt
 import requests_mock
 
 import sesinv
@@ -169,7 +170,7 @@ class TestOIDCClientFlow(unittest.TestCase):
         test_jwt = jwt.encode(
             {'username': 'tester@mozilla.com'}, 
             TEST_RSA_KEY,
-            algorithm='RSA256',
+            algorithm='RS256',
         )
 
         with requests_mock.Mocker() as mock:

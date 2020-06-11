@@ -87,7 +87,7 @@ def retrieve_token(tkn_endpt: str, pubkey: str, **kwargs) -> dict:
     if len(missing) > 0:
         raise MissingParameters(missing)
 
-    algorithms = kwargs.get('jwt_algorithms', ['RSA256'])
+    algorithms = kwargs.get('jwt_algorithms', ['RS256'])
 
     body = {
         key: kwargs[key]

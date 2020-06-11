@@ -127,7 +127,7 @@ class TestOIDCClient(unittest.TestCase):
                 **params,
             )
 
-            mock_decode.assert_called_once_with(test_jwt, 'pubkey', algorithms=['RSA256'])
+            mock_decode.assert_called_once_with(test_jwt, 'pubkey', algorithms=['RS256'])
 
             assert jwt_body == 'claims'
 
@@ -158,7 +158,7 @@ class TestOIDCClient(unittest.TestCase):
                 **params,
             )
             
-            mock_decode.assert_called_once_with('jwt_str', 'pubkey', algorithms=['RSA256'])
+            mock_decode.assert_called_once_with('jwt_str', 'pubkey', algorithms=['RS256'])
             
             history = mock.request_history
             assert len(history) == 1
