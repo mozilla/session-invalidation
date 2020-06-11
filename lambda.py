@@ -110,6 +110,7 @@ def load_config():
     # These are expected to be found in SSM and then loaded into environment
     # variables to avoid reading from SSM too often.  Env vars are encrypted.
     secret_cfg_keys = [
+        'OIDC_CLIENT_SECRET',
         'SSO_CLIENT_SECRET',
         'SLACK_TOKEN',
         'SIGNING_KEY_ECDSA',
@@ -250,24 +251,79 @@ def callback(event, context):
     '''Handle redirects back to the applciation by the OIDC Provider (OP).
     '''
 
+    code = event.get('queryStringParameters', {}).get('code')
+    state = event.get('queryStringParameters', {}).get('state')
+
+    if code is None or state is None:
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'text/plain',
+            },
+            'body': 'Missing required parameter(s) `code` or `state`',
+        }
+
+    cookie = cookies.SimpleCookie()
+    cookie.load(event['headers'].get('Cookie', ''))
+
+    stored_state = cookie.get(USER_STATE_COOKIE_KEY).value
+
+    if stored_state != state:
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'text/plain',
+            },
+            'body': 'Invalid state parameter',
+        }
+
     try:
         config = load_config()
-    except:
+        discovery = sesinv.oidc.discovery_document(
+            os.environ['OIDC_DISCOVERY_URI'],
+        )
+    except Exception as ex:
         return {
             'statusCode': 500,
             'headers': {
                 'Content-Type': 'text/plain',
             },
-            'body': 'Failed to load application configuration',
+            'body': 'Failed to load configuration or oidc-configuration',
+        }
+
+    try:
+        token = sesinv.oidc.retrieve_token(
+            discovery['token_endpoint'],
+            discovery['jwks'],
+            client_id=config['OIDC_CLIENT_ID'],
+            client_secret=config['OIDC_CLIENT_SECRET'],
+            code=code,
+            state=state,
+        )
+    except sesinv.oidc.InvalidToken as tkn_err:
+        return {
+            'statusCode': 400,
+            'headers': {
+                'Content-Type': 'text/plain',
+            },
+            'body': 'Authentication failed',
+        }
+    except Exception as ex:
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'text/plain',
+            },
+            'body': 'Failed to retrieve credentials',
         }
 
     user_token = sesinv.authentication.generate_auth_cookie(
         config['SIGNING_KEY_ECDSA'],
     )
 
-    cookies = [
+    set_cookies = [
         f'{USER_SESSION_COOKIE_KEY}={user_token}',
-        f'{USER_JWT_COOKIE_KEY}=abcdef.1230123.fedcba',
+        f'{USER_JWT_COOKIE_KEY}={json.dumps(token)}',
         'Max-Age=86400',
     ]
 
@@ -276,7 +332,7 @@ def callback(event, context):
         'headers': {
             'Content-Type': 'text/plain',
             'Location': '/dev',
-            'Set-Cookie': '; '.join(cookies),
+            'Set-Cookie': '; '.join(set_cookies),
         },
         'body': 'Redirecting to application index.',
     }

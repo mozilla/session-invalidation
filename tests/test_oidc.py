@@ -103,7 +103,7 @@ class TestOIDCClient(unittest.TestCase):
                 **test_params,
             )
 
-    @patch('authlib.jose.jwt.decode')
+    @patch('jose.jwt.decode')
     def test_retrieve_token_validates_jwts(self, mock_decode):
         test_jwt = 'headers.claims.signature'
 
@@ -134,7 +134,7 @@ class TestOIDCClient(unittest.TestCase):
             history = mock.request_history
             assert len(history) == 1
 
-    @patch('authlib.jose.jwt.decode')
+    @patch('jose.jwt.decode')
     def test_retrieve_token_throws_on_invalid_jwt(self, mock_decode):
         mock_decode.side_effect = oidc.InvalidToken('test')
         

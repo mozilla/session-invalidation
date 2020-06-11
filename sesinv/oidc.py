@@ -3,7 +3,8 @@ import urllib.parse
 import typing as types
 
 import requests
-from authlib.jose import jwt
+#from authlib.jose import jwt
+from jose import jwt
 
 
 CODE_RESPONSE_TYPE = 'code'
@@ -89,8 +90,6 @@ def retrieve_token(tkn_endpt: str, jwk: dict, **kwargs) -> dict:
     if len(missing) > 0:
         raise MissingParameters(missing)
 
-    algorithms = kwargs.get('jwt_algorithms', ['RS256'])
-
     body = {
         key: kwargs[key]
         for key in required
@@ -100,11 +99,7 @@ def retrieve_token(tkn_endpt: str, jwk: dict, **kwargs) -> dict:
 
     res = requests.post(tkn_endpt, json=body)
 
-    token = res.text
-
-    print(f'jwk is {jwk}')
     try:
         return jwt.decode(res.text, jwk)
     except Exception as cause:
-        print(f'XXXX JWT DECODE FAIL {cause}')
         raise InvalidToken(cause)
