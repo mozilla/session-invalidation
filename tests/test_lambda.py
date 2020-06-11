@@ -190,7 +190,6 @@ class TestOIDCClientFlow(unittest.TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.get(os.environ['OIDC_DISCOVERY_URI'], json=discovery_doc)
-            #mock.get(discovery_doc['jwks_uri'], text=TEST_RSA_KEY.decode('utf-8'))
             mock.get(discovery_doc['jwks_uri'], json={
                 'keys': [
                     key_data,
@@ -205,9 +204,11 @@ class TestOIDCClientFlow(unittest.TestCase):
         assert main.USER_JWT_COOKIE_KEY in response['headers']['Set-Cookie']
         assert main.USER_SESSION_COOKIE_KEY in response['headers']['Set-Cookie']
 
-'''
     @patch('lambda.load_config')
-    def test_error_upon_no_token_retrieval(self, load_config_mock):
+    def test_error_upon_no_token_retrieval(
+        self,
+        load_config_mock,
+    ):
         load_config_mock.return_value = load_test_env_vars(
             OIDC_DISCOVERY_URI=
                 'http://test.token.com/.well-known/oidc-configuration',
@@ -231,8 +232,10 @@ class TestOIDCClientFlow(unittest.TestCase):
 
         with requests_mock.Mocker() as mock:
             mock.get(os.environ['OIDC_DISCOVERY_URI'], json=discovery_doc)
-            mock.get(discovery_doc['jwks_uri'], json=TEST_RSA_KEY)
-            mock.get(discovery_doc['token_endpoint'], status_code=400)
+            mock.get(discovery_doc['jwks_uri'], json={
+                'keys': [],
+            })
+            mock.post(discovery_doc['token_endpoint'], status_code=400)
 
             response = main.callback(event, None)
 
@@ -261,16 +264,27 @@ class TestOIDCClientFlow(unittest.TestCase):
             'jwks_uri': 'http://test.token.com/jwks',
             'token_endpoint': 'http://test.token.com/token',
         }
+        
+        key_data = jwk.dumps(TEST_RSA_KEY, kty='RSA')
+
+        test_jwt = jwt.encode(
+            {'alg': 'RS256'},
+            {'username': 'tester@mozilla.com'}, 
+            key_data,
+        ).decode('utf-8')
 
         test_jwt = 'invalid.json.webtoken'
 
         with requests_mock.Mocker() as mock:
             mock.get(os.environ['OIDC_DISCOVERY_URI'], json=discovery_doc)
-            mock.get(discovery_doc['jwks_uri'], json=TEST_RSA_KEY)
-            mock.get(discovery_doc['token_endpoint'], text=test_jwt)
+            mock.get(discovery_doc['jwks_uri'], json={
+                'keys': [
+                    key_data,
+                ],
+            })
+            mock.post(discovery_doc['token_endpoint'], text=test_jwt)
 
             response = main.callback(event, None)
 
         assert response['statusCode'] == 400
         assert 'Set-Cookie' not in response['headers']
-'''
