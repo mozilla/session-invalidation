@@ -3,7 +3,7 @@ import urllib.parse
 import typing as types
 
 import requests
-import jwt
+from authlib.jose import jwt
 
 
 CODE_RESPONSE_TYPE = 'code'
@@ -39,11 +39,13 @@ def discovery_document(discovery_url: str) -> dict:
     # Update the discovery document if we request one from a new URL.
     # Mostly just for testing purposes.
     if not cached or global_discovery_doc['discovery_url'] != discovery_url:
-        global_discovery_doc = requests.get(discovery_url).json()
+        doc = requests.get(discovery_url).json()
 
-        jwks_uri = global_discovery_doc['jwks_uri']
-        global_discovery_doc['jwks'] = requests.get(jwks_uri).json()
-        global_discovery_doc['discovery_url'] = discovery_url
+        jwks_uri = doc['jwks_uri']
+        doc['jwks'] = requests.get(jwks_uri).json()
+        doc['discovery_url'] = discovery_url
+
+        global_discovery_doc = doc
 
     return global_discovery_doc
 
@@ -75,7 +77,7 @@ def authorize_redirect_uri(auth_endpt, **kwargs) -> str:
     return f'{auth_endpt}?{urllib.parse.urlencode(params)}'
 
 
-def retrieve_token(tkn_endpt: str, pubkey: str, **kwargs) -> dict:
+def retrieve_token(tkn_endpt: str, jwk: dict, **kwargs) -> dict:
     '''Authenticate to an OIDC Provider and validate the token retrieved,
     returning the body of the JWT.
     '''
@@ -100,7 +102,9 @@ def retrieve_token(tkn_endpt: str, pubkey: str, **kwargs) -> dict:
 
     token = res.text
 
+    print(f'jwk is {jwk}')
     try:
-        return jwt.decode(res.text, pubkey, algorithms=algorithms)
+        return jwt.decode(res.text, jwk)
     except Exception as cause:
+        print(f'XXXX JWT DECODE FAIL {cause}')
         raise InvalidToken(cause)
