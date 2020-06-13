@@ -5,9 +5,10 @@ provider:
   stage: dev
   region: us-west-2
   environment:
-    OIDC_CLIENT_ID: ''
-    OIDC_DISCOVERY_URI: ''
-    OIDC_SCOPES: ''
+    SELF_DOMAIN: 'https://${self:custom.customDomain.domainName}'
+    OIDC_CLIENT_ID: 'M6lxk8phwDaqH4gECMWDLxKxxZwJcDI7'
+    OIDC_DISCOVERY_URI: 'https://auth-dev.mozilla.auth0.com/.well-known/openid-configuration'
+    OIDC_SCOPES: 'openid profile email'
     SSO_CLIENT_ID: 'eJPgs0CNdtyDW0bWTMByMb3Pan1F8n6n'
     MOZ_OAUTH_ENDPT: 'https://auth-dev.mozilla.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser'
     GSUITE_USERS_ENDPT: 'https://www.googleapis.com/admin/directory/v1/users/{}'

@@ -78,12 +78,12 @@ def authorize_redirect_uri(auth_endpt, **kwargs) -> str:
     return f'{auth_endpt}?{urllib.parse.urlencode(params)}'
 
 
-def retrieve_token(tkn_endpt: str, jwk: dict, **kwargs) -> dict:
+def retrieve_token(tkn_endpt: str, jwk: dict, audience: str, **kwargs) -> dict:
     '''Authenticate to an OIDC Provider and validate the token retrieved,
     returning the body of the JWT.
     '''
 
-    required = ['client_id', 'client_secret', 'code', 'state']
+    required = ['client_id', 'client_secret', 'code', 'state', 'redirect_uri']
 
     missing = [req for req in required if kwargs.get(req) is None]
 
@@ -97,9 +97,9 @@ def retrieve_token(tkn_endpt: str, jwk: dict, **kwargs) -> dict:
 
     body['grant_type'] = CODE_GRANT_TYPE
 
-    res = requests.post(tkn_endpt, json=body)
+    res = requests.post(tkn_endpt, json=body).json()
 
     try:
-        return jwt.decode(res.text, jwk)
+        return jwt.decode(res['id_token'], jwk, audience=audience)
     except Exception as cause:
         raise InvalidToken(cause)

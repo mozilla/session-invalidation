@@ -119,6 +119,7 @@ def load_config():
     # These are expected to be stored in environment variables when the
     # function is deployed.
     non_secret_cfg_keys = [
+        'SELF_DOMAIN',
         'OIDC_CLIENT_ID',
         'OIDC_DISCOVERY_URI',
         'OIDC_SCOPES',
@@ -200,7 +201,7 @@ def index(event, context):
 
     log('Session Invalidation application requested', logging.INFO)
 
-    cookie_str = event.get('headers', {}).get('Cookie', '')
+    cookie_str = event.get('headers', {}).get('cookie', '')
 
     try:
         if user_is_authenticated(cookie_str):
@@ -222,7 +223,7 @@ def index(event, context):
                 discovery['authorization_endpoint'],
                 state=state,
                 scope=os.environ['OIDC_SCOPES'],
-                redirect_uri='/callback',
+                redirect_uri=f'{os.environ["SELF_DOMAIN"]}/callback',
                 client_id=os.environ['OIDC_CLIENT_ID'],
             )
 
@@ -231,7 +232,7 @@ def index(event, context):
                 'headers': {
                     'Content-Type': 'text/plain',
                     'Location': authorize_endpoint,
-                    'Cookie': f'{USER_STATE_COOKIE_KEY}={state}',
+                    'Set-Cookie': f'{USER_STATE_COOKIE_KEY}={state}',
                 },
                 'body': 'Redirecting to authentication callback (TODO: OIDC)',
             }
@@ -264,11 +265,11 @@ def callback(event, context):
         }
 
     cookie = cookies.SimpleCookie()
-    cookie.load(event['headers'].get('Cookie', ''))
+    cookie.load(event['headers'].get('cookie', ''))
 
-    stored_state = cookie.get(USER_STATE_COOKIE_KEY).value
+    stored_state = cookie.get(USER_STATE_COOKIE_KEY)
 
-    if stored_state != state:
+    if stored_state is not None and stored_state.value != state:
         return {
             'statusCode': 400,
             'headers': {
@@ -295,12 +296,16 @@ def callback(event, context):
         token = sesinv.oidc.retrieve_token(
             discovery['token_endpoint'],
             discovery['jwks'],
+            config['OIDC_CLIENT_ID'],
             client_id=config['OIDC_CLIENT_ID'],
             client_secret=config['OIDC_CLIENT_SECRET'],
             code=code,
             state=state,
+            redirect_uri=f'{os.environ["SELF_DOMAIN"]}/callback',
         )
     except sesinv.oidc.InvalidToken as tkn_err:
+        log(f'Token validation failed: {tkn_err}', logging.ERROR)
+
         return {
             'statusCode': 400,
             'headers': {
@@ -331,7 +336,7 @@ def callback(event, context):
         'statusCode': 302,
         'headers': {
             'Content-Type': 'text/plain',
-            'Location': '/dev',
+            'Location': os.environ['SELF_DOMAIN'],
             'Set-Cookie': '; '.join(set_cookies),
         },
         'body': 'Redirecting to application index.',
@@ -392,7 +397,7 @@ def terminate(event, context):
             ),
         }
     
-    cookie_str = event.get('headers', {}).get('Cookie', '')
+    cookie_str = event.get('headers', {}).get('cookie', '')
 
     try:
         if not user_is_authenticated(cookie_str):
