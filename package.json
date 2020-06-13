@@ -1,0 +1,28 @@
+{
+  "name": "session-invalidation",
+  "version": "0.1.0",
+  "description": "The Mozilla Session Invalidation tool (name subjet to change) is a solution providing Information Security teams such as Mozilla's Enterprise Information Security (EIS) with the capability to rapidly terminate the sessions of user accounts across a variety of reliant parties (RPs), i.e. services that a user may have a session on.  In doing so, a potentially compromised user account can have its access to services revoked, preventing an attacker from using a compromised account to wreak havoc.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mozilla/session-invalidation.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mozilla/session-invalidation/issues"
+  },
+  "homepage": "https://github.com/mozilla/session-invalidation#readme",
+  "devDependencies": {
+    "serverless-domain-manager": "^4.1.1"
+  }
+}

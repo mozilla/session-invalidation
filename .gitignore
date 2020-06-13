@@ -2,6 +2,9 @@
 # TO PREVENT SECURE TOKENS FROM BEING LEAKED
 settings.cfg
 
+# JavaScript dependencies for serverless plugins
+node_modules/
+package-lock.json
 
 # Serverless state stuff
 .serverless/

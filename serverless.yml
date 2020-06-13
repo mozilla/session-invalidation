@@ -119,3 +119,17 @@ functions:
     handler: lambda.terminate
     events:
       - http: post /terminate
+plugins:
+  - serverless-domain-manager
+custom:
+  customDomain:
+    domainName: 'session-invalidation.security.allizom.org'
+    certificateArn: 'arn:aws:acm:us-west-2:656532927350:certificate/453c5160-daf4-4238-a195-9eb487a71d23'
+    hostedZoneId:  'Z13VQZ50081YZU'
+    basePath: ''
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+    securityPolicy: tls_1_2
+    apiType: rest
+    endpointType: regional
+    certificateRegion: us-west-2
