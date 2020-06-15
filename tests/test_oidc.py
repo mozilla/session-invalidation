@@ -86,6 +86,7 @@ class TestOIDCClient(unittest.TestCase):
             'client_secret',
             'code',
             'state',
+            'redirect_uri',
         ]
 
         params = {k: 'test' for k in required}
@@ -100,13 +101,12 @@ class TestOIDCClient(unittest.TestCase):
                 oidc.retrieve_token,
                 'test.site.com/token',
                 'pubkey',
+                'test.com',
                 **test_params,
             )
 
     @patch('jose.jwt.decode')
     def test_retrieve_token_validates_jwts(self, mock_decode):
-        test_jwt = 'headers.claims.signature'
-
         mock_decode.return_value = 'claims'
         
         required = [
@@ -114,20 +114,28 @@ class TestOIDCClient(unittest.TestCase):
             'client_secret',
             'code',
             'state',
+            'redirect_uri',
         ]
 
         params = {k: 'test' for k in required}
 
         with requests_mock.Mocker() as mock:
-            mock.post('http://test.site.com/token', text=test_jwt)
+            mock.post('http://test.site.com/token', json={
+                'id_token': 'token',
+            })
 
             jwt_body = oidc.retrieve_token(
                 'http://test.site.com/token',
                 'pubkey',
+                'test.com',
                 **params,
             )
 
-            mock_decode.assert_called_once_with(test_jwt, 'pubkey')
+            mock_decode.assert_called_once_with(
+                'token',
+                'pubkey',
+                audience='test.com',
+            )
 
             assert jwt_body == 'claims'
 
@@ -143,22 +151,30 @@ class TestOIDCClient(unittest.TestCase):
             'client_secret',
             'code',
             'state',
+            'redirect_uri',
         ]
 
         params = {k: 'test' for k in required}
 
         with requests_mock.Mocker() as mock:
-            mock.post('http://test.site.com/token', text='jwt_str')
+            mock.post('http://test.site.com/token', json={
+                'id_token': 'test',
+            })
             
             self.assertRaises(
                 oidc.InvalidToken,
                 oidc.retrieve_token,
                 'http://test.site.com/token',
                 'pubkey',
+                'test.com',
                 **params,
             )
             
-            mock_decode.assert_called_once_with('jwt_str', 'pubkey')
+            mock_decode.assert_called_once_with(
+                'test',
+                'pubkey',
+                audience='test.com',
+            )
             
             history = mock.request_history
             assert len(history) == 1

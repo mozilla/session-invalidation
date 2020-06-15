@@ -18,7 +18,7 @@ STATIC_CONTENT_BUCKET_NAME = 'session-invalidation-static-content'
 SECRETS_SSM_PARAMETER = 'session-invalidation-secrets'
 
 USER_SESSION_COOKIE_KEY = 'user-session'
-USER_JWT_COOKIE_KEY = 'user-jwt'
+USER_EMAIL_COOKIE_KEY = 'user-email'
 USER_STATE_COOKIE_KEY = 'user-state'
 
 ERROR_PAGE = '''<doctype HTML>
@@ -293,7 +293,7 @@ def callback(event, context):
         }
 
     try:
-        token = sesinv.oidc.retrieve_token(
+        claims = sesinv.oidc.retrieve_token(
             discovery['token_endpoint'],
             discovery['jwks'],
             config['OIDC_CLIENT_ID'],
@@ -323,13 +323,13 @@ def callback(event, context):
         }
 
     user_token = sesinv.authentication.generate_auth_cookie(
+        claims['email'],
         config['SIGNING_KEY_ECDSA'],
     )
 
     set_cookies = [
         f'{USER_SESSION_COOKIE_KEY}={user_token}',
-        f'{USER_JWT_COOKIE_KEY}={json.dumps(token)}',
-        'Max-Age=86400',
+        f'Expires={claims["exp"]}',
     ]
 
     return {

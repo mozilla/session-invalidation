@@ -128,18 +128,27 @@ class TestOIDCClientFlow(unittest.TestCase):
         assert 'client_id' in location
 
     @patch('lambda.load_config')
-    def test_no_redirect_for_authenticated_user(self, load_config_mock):
+    @patch('lambda.static_content')
+    def test_no_redirect_for_authenticated_user(
+        self,
+        static_content_mock,
+        load_config_mock,
+    ):
+        static_content_mock.return_value =\
+            '<html><head></head><body><h1>Test</h1></body></html>'
+
         load_config_mock.return_value = load_test_env_vars(
             SIGNING_KEY_ECDSA=ecdsa.SigningKey.generate().to_string().hex(),
         )
 
         session_token = sesinv.authentication.generate_auth_cookie(
+            'testdata',
             os.environ['SIGNING_KEY_ECDSA'],
         )
 
         event = {
             'headers': {
-                'Cookie': f'{main.USER_SESSION_COOKIE_KEY}={session_token}',
+                'cookie': f'{main.USER_SESSION_COOKIE_KEY}={session_token}',
             },
         }
 
@@ -160,9 +169,13 @@ class TestOIDCClientFlow(unittest.TestCase):
                 'http://test.token.com/.well-known/oidc-configuration',
             SIGNING_KEY_ECDSA=
                 ecdsa.SigningKey.generate().to_string().hex(),
+            SELF_DOMAIN='test.site.com/',
         )
 
-        jwt_decode_mock.return_value = 'jwt-claims'
+        jwt_decode_mock.return_value = {
+            'email': 'tester@mozilla.com',
+            'exp': 86400,
+        }
 
         event = {
             'queryStringParameters': {
@@ -180,28 +193,23 @@ class TestOIDCClientFlow(unittest.TestCase):
             'token_endpoint': 'http://test.token.com/token',
         }
 
-        key_data = jwk.dumps(TEST_RSA_KEY, kty='RSA')
-
-        test_jwt = jwt.encode(
-            {'alg': 'RS256'},
-            {'username': 'tester@mozilla.com'}, 
-            key_data,
-        ).decode('utf-8')
-
         with requests_mock.Mocker() as mock:
             mock.get(os.environ['OIDC_DISCOVERY_URI'], json=discovery_doc)
             mock.get(discovery_doc['jwks_uri'], json={
                 'keys': [
-                    key_data,
+                    {
+                        'a': 1,
+                    },
                 ],
             })
-            mock.post(discovery_doc['token_endpoint'], text=test_jwt)
+            mock.post(discovery_doc['token_endpoint'], json={
+                'id_token': 'token',  # This value is ignored by the jose patch
+            })
 
             response = main.callback(event, None)
 
         assert response['statusCode'] == 302
-        assert response['headers'].get('Location') == '/dev'
-        assert main.USER_JWT_COOKIE_KEY in response['headers']['Set-Cookie']
+        assert response['headers'].get('Location') == os.environ['SELF_DOMAIN']
         assert main.USER_SESSION_COOKIE_KEY in response['headers']['Set-Cookie']
 
     @patch('lambda.load_config')
@@ -212,6 +220,7 @@ class TestOIDCClientFlow(unittest.TestCase):
         load_config_mock.return_value = load_test_env_vars(
             OIDC_DISCOVERY_URI=
                 'http://test.token.com/.well-known/oidc-configuration',
+            SELF_DOMAIN='test.com',
         )
 
         event = {
@@ -220,7 +229,7 @@ class TestOIDCClientFlow(unittest.TestCase):
                 'code': 'def987',
             },
             'headers': {
-                'Cookie': f'{main.USER_STATE_COOKIE_KEY}=abc123',
+                'cookie': f'{main.USER_STATE_COOKIE_KEY}=abc123',
             },
         }
 
@@ -247,6 +256,7 @@ class TestOIDCClientFlow(unittest.TestCase):
         load_config_mock.return_value = load_test_env_vars(
             OIDC_DISCOVERY_URI=
                 'http://test.token.com/.well-known/oidc-configuration',
+            SELF_DOMAIN='test.com',
         )
 
         event = {
@@ -273,8 +283,6 @@ class TestOIDCClientFlow(unittest.TestCase):
             key_data,
         ).decode('utf-8')
 
-        test_jwt = 'invalid.json.webtoken'
-
         with requests_mock.Mocker() as mock:
             mock.get(os.environ['OIDC_DISCOVERY_URI'], json=discovery_doc)
             mock.get(discovery_doc['jwks_uri'], json={
@@ -282,7 +290,9 @@ class TestOIDCClientFlow(unittest.TestCase):
                     key_data,
                 ],
             })
-            mock.post(discovery_doc['token_endpoint'], text=test_jwt)
+            mock.post(discovery_doc['token_endpoint'], json={
+                'id_token': 'testtoken',
+            })
 
             response = main.callback(event, None)
 

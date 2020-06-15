@@ -97,9 +97,15 @@ def retrieve_token(tkn_endpt: str, jwk: dict, audience: str, **kwargs) -> dict:
 
     body['grant_type'] = CODE_GRANT_TYPE
 
-    res = requests.post(tkn_endpt, json=body).json()
+    response = requests.post(tkn_endpt, json=body)
+
+    if response.status_code != 200:
+        raise InvalidToken(f'Status code {response.status_code}')
+
+    res = response.json()
 
     try:
-        return jwt.decode(res['id_token'], jwk, audience=audience)
+        id_token = res['id_token']
+        return jwt.decode(id_token, jwk, audience=audience)
     except Exception as cause:
         raise InvalidToken(cause)
