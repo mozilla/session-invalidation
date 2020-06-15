@@ -33,6 +33,9 @@ type Message = {
     // The level of severity of the event the message describes.
     "loglevel": "notset" | "info" | "debug" | "warning" | "error" | "critical",
 
+    // The email address of the user of the application.
+    "actor": null | string,
+
     // The email address of the user whose sessions were terminated if
     // a termination event is being described, or else null.
     "invalidateduser": null | string, 

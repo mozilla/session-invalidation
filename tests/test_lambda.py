@@ -76,7 +76,10 @@ def load_test_env_vars(**kwargs):
     return defaults
 
 
-@patch('lambda.log', lambda _, __: None)
+def mock_log(msg, lvl, **kwargs):
+    return None
+
+@patch('lambda.log', mock_log)
 class TestOIDCClientFlow(unittest.TestCase):
     '''Unit tests for the OIDC client flow which is facilitated by the
     session invalidation application's own API.

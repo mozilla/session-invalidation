@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import sys
+import typing as types
 
 if 'LAMBDA_TASK_ROOT' in os.environ:
     sys.path.append(f"{os.environ['LAMBDA_TASK_ROOT']}/lib")
@@ -40,7 +41,7 @@ logging.getLogger('boto3').propagate = False
 logging.getLogger('botocore').propagate = False
 
 
-def log(message, level=logging.DEBUG, username=None, result=None):
+def log(message, level=logging.DEBUG, factor=None, username=None, result=None):
     '''Write a log message and an instrumentation event to SQS.
     '''
 
@@ -60,10 +61,14 @@ def log(message, level=logging.DEBUG, username=None, result=None):
         'details': {
             'logmessage': message,
             'loglevel': level_name,
+            'actor': None,
             'invalidateduser': None,
             'invalidatedsessions': None,
         },
     }
+
+    if actor is not None:
+        message['details']['actor'] = actor
 
     if username is not None:
         message['details']['invalidateduser'] = username
@@ -161,7 +166,7 @@ def load_config():
     return config
 
 
-def user_is_authenticated(cookie_header: str) -> bool:
+def authenticated_user_email(cookie_header: str) -> types.Optional[str]:
     '''Veirfy that there is a `USER_SESSION_COOKIE_KEY` key in the user's
     cookie and that it contains a valid, signed nonce value generated as a
     result of completing authentication.
@@ -172,7 +177,7 @@ def user_is_authenticated(cookie_header: str) -> bool:
     morsel = cookie.get(USER_SESSION_COOKIE_KEY)
 
     if morsel is None:
-        return False
+        return None
 
     config = load_config()
 
@@ -204,7 +209,15 @@ def index(event, context):
     cookie_str = event.get('headers', {}).get('cookie', '')
 
     try:
-        if user_is_authenticated(cookie_str):
+        user_email = authenticated_user_email(cookie_str)
+
+        if user_email is not None:
+            log(
+                f'Serving application to {user_email}',
+                logging.INFO,
+                actor=user_email,
+            )
+
             return {
                 'statusCode': 200,
                 'headers': {
@@ -237,8 +250,6 @@ def index(event, context):
                 'body': 'Redirecting to authentication callback (TODO: OIDC)',
             }
     except Exception as ex:
-        log(f'Failed to load index page from S3: {ex}', logging.CRITICAL)
-
         return {
             'statusCode': 500,
             'headers': {
@@ -400,7 +411,9 @@ def terminate(event, context):
     cookie_str = event.get('headers', {}).get('cookie', '')
 
     try:
-        if not user_is_authenticated(cookie_str):
+        user_email = authenticated_user_email(cookie_str)
+
+        if user_email is None:
             return {
                 'statusCode': 403,
                 'headers': {
@@ -411,17 +424,26 @@ def terminate(event, context):
 
         username = json.loads(event['body']).get('username')
     except:
-        log('Invalid request sent to terminate endpoint', logging.ERROR)
+        log(
+            'Invalid request sent to terminate endpoint',
+            logging.ERROR,
+            actor=user_email,
+        )
         return error(400, 'Invalid body format. Expected JSON')
 
     if username is None:
         log(
             'Request sent to terminate endpoint with missing username',
             logging.ERROR,
+            actor=user_email,
         )
         return error(400, 'Missing `username` field')
 
-    log(f'Request to terminate sessions for {username}', logging.WARNING)
+    log(
+        f'Request to terminate sessions for {username} by {user_email}',
+        logging.WARNING,
+        actor=user_email,
+    )
 
     try:
         config = load_config()
@@ -446,8 +468,9 @@ def terminate(event, context):
     result = sesinv.messages.Result(results)
 
     log(
-        f'Terminated sessions for {username}',
+        f'Terminated sessions for {username} by {user_email}',
         logging.WARNING,
+        actor=user_email,
         username=username,
         result=result,
     )
