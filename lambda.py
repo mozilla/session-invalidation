@@ -41,7 +41,7 @@ logging.getLogger('boto3').propagate = False
 logging.getLogger('botocore').propagate = False
 
 
-def log(message, level=logging.DEBUG, factor=None, username=None, result=None):
+def log(message, level=logging.DEBUG, actor=None, username=None, result=None):
     '''Write a log message and an instrumentation event to SQS.
     '''
 
