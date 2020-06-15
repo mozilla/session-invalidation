@@ -76,10 +76,10 @@ class SSOCreds:
         self._expires = datetime.utcnow() + valid_for
 
 
-def generate_auth_cookie(signing_key_hex: str) -> str:
-    '''Generate a random string and sign it.  Produces a cryptographically
-    secure value that can be stored in a user's cookies and tested in
-    future requests.
+def generate_auth_cookie(data: str, signing_key_hex: str) -> str:
+    '''Pairs a piece of data with a randomly-generated nonce and appends
+    a signature.  The format of the output is `<data>&<nonce>&<signature>`
+    and parsing is dependent on the `&` character as a vaid delimiter.
     '''
 
     nonce = os.urandom(32)
@@ -90,19 +90,24 @@ def generate_auth_cookie(signing_key_hex: str) -> str:
 
     signature = signing_key.sign(nonce)
 
-    return f'{nonce.hex()}_{signature.hex()}'
+    return f'{data}&{nonce.hex()}&{signature.hex()}'
 
 
-def validate_auth_cookie(signing_key_hex: str, auth_cookie: str) -> bool:
-    '''Validate the signature of a token stored in a user's cookie.
+def validate_auth_cookie(
+    signing_key_hex: str,
+    auth_cookie: str,
+) -> types.Optional[str]:
+    '''Validates the signature of a token stored in a user's cookie
+    and returns the encoded data.  If verification fails, this function
+    returns `None`.
     '''
 
-    parts = auth_cookie.split('_')
+    parts = auth_cookie.split('&')
 
-    if len(parts) != 2:
-        return False
+    if len(parts) != 3:
+        return None
 
-    [nonce_str, signature_str] = parts
+    [data, nonce_str, signature_str] = parts
     nonce = bytearray.fromhex(nonce_str)
     signature = bytearray.fromhex(signature_str)
 
@@ -112,6 +117,11 @@ def validate_auth_cookie(signing_key_hex: str, auth_cookie: str) -> bool:
     verifying_key = signing_key.verifying_key
 
     try:
-        return verifying_key.verify(signature, nonce)
+        is_valid = verifying_key.verify(signature, nonce)
     except ecdsa.keys.BadSignatureError:
-        return False
+        return None
+
+    if is_valid:
+        return data
+
+    return None
