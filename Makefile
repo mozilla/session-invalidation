@@ -28,8 +28,10 @@ upload-static-content:
 delete-static-content:
 	./scripts/delete-static-content.sh
 
-teardown-deploy: clean delete-static-content
-	serverless remove
+delete-ssm-parameter:
 	aws ssm delete-parameter --name session-invalidation-secrets
+
+teardown-deploy: clean delete-static-content delete-ssm-parameter
+	serverless remove
 
 deploy: install-serverless deploy-functions upload-static-content
