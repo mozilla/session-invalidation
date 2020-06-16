@@ -7,9 +7,8 @@ new RPs.
 ## Termination Functions
 
 At the time of this writing, all of the functionality for session termination
-across supported RPs is implemented in
-`mozilla_session_invalidation/session_invalidation.py`.  Here you will find a
-couple of important types and conventions that you can use and follow to
+across supported RPs is implemented in `sesinv/sessions.py`.  Here you will
+find a couple of important types and conventions that you can use and follow to
 implement support for new RPs that will easily work with the rest of the
 application.
 
@@ -55,11 +54,11 @@ And that's it!
 Once a new termination function has been implemented, it must be configured for
 use by the API backend.  This portion of the codebase organizes all of the work
 of passing arguments from the application configuration into your termination
-function's wrapper (e.g. `terminate_imaginary_rp`) in the `_configure_jobs`
-function in `mozilla_session_invalidation/views.py`. `_configure_jobs` returns a
+function's wrapper (e.g. `terminate_imaginary_rp`) in the `configure_jobs`
+function in `sesinv/sessions.py`. `configure_jobs` returns a
 dictionary mapping the identifier that you added to `SupportedReliantParties` to
 an `IJob` function.  So, for example, you might set up your new function with
-the following code additions to `_configure_jobs`:
+the following code additions to `configure_jobs`:
 
 ```py
     imaginary_rp = sesinv.terminate_imaginary_rp(
@@ -71,26 +70,27 @@ the following code additions to `_configure_jobs`:
 
     return {
         # ...
-        sesinv.SupportedReliantParties.IMAGINARY_RP: imaginary_rp,
+        SupportedReliantParties.IMAGINARY_RP: imaginary_rp,
     }
 ```
 
 The last thing you'll need to add are definitions of the configuration variables
-that your new code changes reference.  Add them to `settings.cfg`:
+that your new code changes reference.  Add them to `serverless.yml`'s
+`provider.environment` section.
 
 ```
-UNIQUE = 32
-PARAMETERS = 'value'
+UNIQUE: 32
+PARAMETERS: 'value'
 ```
 
 With just these changes, your new termination function will be invoked every
-time someone ends a username to the `/terminate` endpoint.
+time someone sends a valid, authenticated request to the `/terminate` endpoint.
 
 ## Adding Support to the Frontend
 
 The last thing to add is support to the frontend application so that users will
 be able to see output associated with the RP you are supporting.  All of the
-code for the frontend exists in `mozilla_session_invalidation/static/main.js`.
+code for the frontend exists in `static/main.js`.
 This involves three steps:
 
 1. Adding the shared identifier you specified in your change to
@@ -138,7 +138,7 @@ referenced in the `<span>` element you added to the template).
           imaginaryState: STATE_NOT_MODIFIED
 ```
 
-You'll also see that this method check's each `result`'s `affectedRP` field to
+You'll also see that this method checks each `result`'s `affectedRP` field to
 determine the state changes to each RP.  Add a case for your new one.
 
 ```js
