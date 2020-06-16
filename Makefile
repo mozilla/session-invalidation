@@ -9,6 +9,7 @@ venv:
 
 requirements: venv
 	pip install -r requirements.txt
+	npm install
 
 requirements-test: venv
 	pip install -r requirements-test.txt
