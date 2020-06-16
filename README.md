@@ -44,22 +44,6 @@ forcing the account owner who knows the account password and, ideally, owns
 the account's associated MFA device to log back in, eliminating the attacker's
 presence from the Slack account.
 
-## Project Roadmap
-
-Until the end of July, the roadmap for the project consists of the following
-milestones:
-
-1. Implement support for the termination of GSuite user sessions.
-2. Add functionality to have use of the tool emitted e.g. to
-   [Amazon SQS](https://aws.amazon.com/sqs/) for consumption by a SIEM such as
-   [MozDef](https://github.com/mozilla/MozDef).
-3. Produce documentation describing the tool, its architecture etc. and have
-   this documentation reviewed and the tool assessed by Mozilla's EIS team.
-4. Deploy and begin testing the tool running on an approved architecture.
-
-Following these steps, further development on support for more RPs will take
-place.
-
 ## Development
 
 The Session Invalidation tool (name subject to change) is currently in an early
@@ -71,3 +55,10 @@ Adding support for new RPs can be done in a fairly modular fashion, and a guide
 explaining all of the changes that need to take place to support terminating
 sessions for a new RP in both the backend and frontend an be found in
 [docs/supporting_new_rps.md](https://github.com/mozilla/session-invalidation/blob/master/docs/supporting_new_rps.md).
+
+## Deployment
+
+The Session Invalidation tool runs in AWS Lambda, depending on an AWS SSM
+parameter to store secrets and AWS S3 to host static content for the frontend.
+All of the steps to create these resources and deploy the application can be
+found in the [deployment guide](/docs/deployment.md).
