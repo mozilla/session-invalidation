@@ -172,15 +172,12 @@ def terminate_gsuite(bearer_token: str, endpt: str) -> IJob:
         err_msg = 'Failed to terminate GSuite session for {}'.format(email)
 
         try:
-            # Toggling the `changePasswordAtNextLogin` field has the effect of
-            # forcing a login without actually requiring a password change.
-            # https://stackoverflow.com/questions/52934817/reset-the-login-cookie-by-api
             response1 = requests.patch(url, headers=headers, json={
-                'changePasswordAtNextLogin': True,
+                'suspended': True,
             })
 
             response2 = requests.patch(url, headers=headers, json={
-                'changePasswordAtNextLogin': False,
+                'suspended': False,
             })
             
             resp1_json = response1.json()

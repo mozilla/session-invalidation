@@ -93,8 +93,8 @@ class TestSessionInvalidators(unittest.TestCase):
             assert history[0].url.endswith(e_url)
             assert history[1].url.endswith(e_url)
 
-            assert history[0].json()['changePasswordAtNextLogin'] is True
-            assert history[1].json()['changePasswordAtNextLogin'] is False
+            assert history[0].json()['suspended'] is True
+            assert history[1].json()['suspended'] is False
 
             assert result.error is not None
             assert 'Status 400' in result.error
@@ -118,8 +118,8 @@ class TestSessionInvalidators(unittest.TestCase):
             assert history[0].url.endswith(e_url)
             assert history[1].url.endswith(e_url)
 
-            assert history[0].json()['changePasswordAtNextLogin'] is True
-            assert history[1].json()['changePasswordAtNextLogin'] is False
+            assert history[0].json()['suspended'] is True
+            assert history[1].json()['suspended'] is False
 
             assert result.error is None
             assert result.new_state == sessions.TerminationState.TERMINATED
