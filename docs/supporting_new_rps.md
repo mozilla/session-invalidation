@@ -83,6 +83,9 @@ UNIQUE: 32
 PARAMETERS: 'value'
 ```
 
+Note that any secret parameters must be configured once during deployment.
+For information about how to do this, see [deployment.md](deployment.md).
+
 With just these changes, your new termination function will be invoked every
 time someone sends a valid, authenticated request to the `/terminate` endpoint.
 
