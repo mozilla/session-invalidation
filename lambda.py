@@ -209,13 +209,13 @@ def index(event, context):
     cookie_str = event.get('headers', {}).get('cookie', '')
 
     try:
-        user_email = authenticated_user_email(cookie_str)
+        actor = authenticated_user_email(cookie_str)
 
-        if user_email is not None:
+        if actor is not None:
             log(
-                f'Serving application to {user_email}',
+                f'Serving application to {actor}',
                 logging.INFO,
-                actor=user_email,
+                actor=actor,
             )
 
             return {
@@ -411,9 +411,9 @@ def terminate(event, context):
     cookie_str = event.get('headers', {}).get('cookie', '')
 
     try:
-        user_email = authenticated_user_email(cookie_str)
+        actor = authenticated_user_email(cookie_str)
 
-        if user_email is None:
+        if actor is None:
             return {
                 'statusCode': 403,
                 'headers': {
@@ -427,7 +427,7 @@ def terminate(event, context):
         log(
             'Invalid request sent to terminate endpoint',
             logging.ERROR,
-            actor=user_email,
+            actor=actor,
         )
         return error(400, 'Invalid body format. Expected JSON')
 
@@ -435,14 +435,14 @@ def terminate(event, context):
         log(
             'Request sent to terminate endpoint with missing username',
             logging.ERROR,
-            actor=user_email,
+            actor=actor,
         )
         return error(400, 'Missing `username` field')
 
     log(
-        f'Request to terminate sessions for {username} by {user_email}',
+        f'Request to terminate sessions for {username} by {actor}',
         logging.WARNING,
-        actor=user_email,
+        actor=actor,
     )
 
     try:
@@ -468,9 +468,9 @@ def terminate(event, context):
     result = sesinv.messages.Result(results)
 
     log(
-        f'Terminated sessions for {username} by {user_email}',
+        f'Terminated sessions for {username} by {actor}',
         logging.WARNING,
-        actor=user_email,
+        actor=actor,
         username=username,
         result=result,
     )

@@ -40,7 +40,8 @@ type Message = {
     // a termination event is being described, or else null.
     "invalidateduser": null | string, 
 
-    // A list of identifiers for reliant parties that were 
+    // A list of identifiers for reliant parties for which the provided user's
+    // sessions were invalidated.
     "invalidatedsessions": null | Array<SupportedRP>,
   }
 }
@@ -54,8 +55,9 @@ type Message = {
 {
   "category": "sessioninvalidation",
   "details": {
-    "logmessage": "Terminated sessions for user@mozilla.com",
+    "logmessage": "Terminated sessions for user@mozilla.com by actor@mozilla.com",
     "loglevel": "warning",
+    "actor": "actor@mozilla.com",
     "invalidateduser": "user@mozilla.com",
     "invalidatedsessions": ["sso", "slack"]
   }
@@ -73,6 +75,7 @@ writing this, so we do not yet have access to requester information._
   "details": {
     "logmessage": "Session invalidation application requested",
     "loglevel": "info",
+    "actor": null,
     "invalidateduser": null,
     "invalidatedsessions": null
   }
@@ -119,14 +122,14 @@ This event is indicated by messages with `details.logmessage` and
 
 ```json
 {
-  "logmessage": "Request to terminate sessions for {username}",
+  "logmessage": "Request to terminate sessions for {username} by {actor}",
   "loglevel": "warning"
 }
 ```
 
 ```json
 {
-  "logmessage": "Terminated sessions for {username}",
+  "logmessage": "Terminated sessions for {username} by {actor}",
   "loglevel": "warning"
 }
 ```
