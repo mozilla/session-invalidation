@@ -97,7 +97,6 @@ The name of the file to retrieve is encoded into the path in place of
 
 The contents of one of
 
-* `index.html`
 * `main.js`
 * `styles.css`
 
