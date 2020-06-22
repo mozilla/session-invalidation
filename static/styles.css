@@ -49,16 +49,20 @@ td {
   display: block;
   margin-left: auto;
   margin-right: auto;
-  min-height: 46px;
-  min-width: 120px;
+  min-height: 240px;
+  min-width: 240px;
   border: none;
-  background-color: #e1dcda;
+  background-color: red;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 2.0em;
+  color: white;
+  border-radius: 50% 50%;
+
 }
 
 #terminate:active {
-  background-color: #d3d2d1;
+  background-color: #bb0505;
+  color: #e8e8e8;
 }
 
 td.username {
