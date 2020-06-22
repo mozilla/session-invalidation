@@ -345,6 +345,26 @@ def static(event, context):
     '''Serve static CSS and JavaScript files.
     '''
 
+    cookie_str = event.get('headers', {}).get('cookie', '')
+
+    try:
+        actor = authenticated_user_email(cookie_str)
+
+        if actor is None:
+            return {
+                'statusCode': 400,
+                'body': json.dumps({
+                    'error': 'Not authenticated',
+                }),
+            }
+    except:
+        return {
+            'statusCode': 500,
+            'body': json.dumps({
+                'error': 'Failed to authenticate user',
+            }),
+        }
+
     filename = event.get('pathParameters', {}).get('filename')
 
     error_404 = {
