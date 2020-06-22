@@ -187,19 +187,6 @@ def authenticated_user_email(cookie_header: str) -> types.Optional[str]:
     )
 
 
-def echo(event, context):
-    '''Echo the event data received.
-    '''
-
-    return {
-        'statusCode': 200,
-        'headers': {
-            'Content-Type': 'application/json',
-        },
-        'body': json.dumps(event),
-    }
-
-
 def index(event, context):
     '''Serve the index page.
     '''
