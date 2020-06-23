@@ -250,8 +250,11 @@ def callback(event, context):
     '''Handle redirects back to the applciation by the OIDC Provider (OP).
     '''
 
-    code = event.get('queryStringParameters', {}).get('code')
-    state = event.get('queryStringParameters', {}).get('state')
+    # When no query string parameters are provided, the value is set to `None`.
+    # Thus calling `event.get('queryStringParameters', {})` returns `None`.
+    query_params = event.get('queryStringParameters') or {}
+    code = query_params.get('code')
+    state = query_params.get('state')
 
     if code is None or state is None:
         return {
