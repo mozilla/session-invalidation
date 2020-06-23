@@ -240,9 +240,9 @@ def index(event, context):
         return {
             'statusCode': 500,
             'headers': {
-                'Content-Type': 'text/html',
+                'Content-Type': 'text/plain',
             },
-            'body': ERROR_PAGE.format(ex),
+            'body': 'An internal server error occurred.',
         }
 
 
@@ -363,9 +363,10 @@ def static(event, context):
     except:
         return {
             'statusCode': 500,
-            'body': json.dumps({
-                'error': 'Failed to authenticate user',
-            }),
+            'headers': {
+                'Content-Type': 'text/plain',
+            },
+            'body': 'Failed to authenticate user',
         }
 
     filename = event.get('pathParameters', {}).get('filename')
