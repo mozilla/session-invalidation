@@ -234,7 +234,7 @@ def index(event, context):
                     'Location': authorize_endpoint,
                     'Set-Cookie': f'{USER_STATE_COOKIE_KEY}={state}',
                 },
-                'body': 'Redirecting to authentication callback (TODO: OIDC)',
+                'body': 'Redirecting to authentication callback endpoint.',
             }
     except Exception as ex:
         return {
