@@ -391,10 +391,20 @@ def static(event, context):
         'js': 'application/javascript',
     }
 
+    ctype = content_types.get(ext)
+
+    if ctype is None:
+        return {
+            'statusCode': 404,
+            'body': json.dumps({
+                'error': 'File not found',
+            }),
+        }
+
     return {
         'statusCode': 200,
         'headers': {
-            'Content-Type': content_types[ext],
+            'Content-Type': ctype,
         },
         'body': content,
     }
