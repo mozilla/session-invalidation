@@ -369,7 +369,10 @@ def static(event, context):
 
     error_404 = {
         'statusCode': 404,
-        'body': f'{filename} not found',
+        'headers': {
+            'Content-Type': 'text/plain',
+        },
+        'body': 'File not found',
     }
 
     log(f'Static file {filename} requested', logging.INFO)
@@ -394,12 +397,7 @@ def static(event, context):
     ctype = content_types.get(ext)
 
     if ctype is None:
-        return {
-            'statusCode': 404,
-            'body': json.dumps({
-                'error': 'File not found',
-            }),
-        }
+        return error_404
 
     return {
         'statusCode': 200,
