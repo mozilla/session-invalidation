@@ -146,7 +146,15 @@ def terminate_sso(creds: auth.SSOCreds, id_fmt: str, endpt: str) -> IJob:
                 error='{}: Status {}'.format(err_msg, response.status_code),
             )
 
-        return JobResult(TerminationState.TERMINATED)
+        note = 'Note: The SSO API does not provide information to indicate '
+        'that a session termination may have failed. Consequently, a status '
+        'of "terminated" for SSO may not indicate that a session was actually '
+        'terminated.'
+
+        return JobResult(
+            TerminationState.TERMINATED,
+            output=note,
+        )
 
     return _terminate
 
