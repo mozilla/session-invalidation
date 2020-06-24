@@ -73,8 +73,22 @@ def configure_jobs(config: dict, selections: types.List[str]) -> JobConfig:
         configuration[SupportedReliantParties.SSO] = sso
 
     if SupportedReliantParties.GSUITE.value in selections:
-        gsuite_oauth_token = ''
-        gsuite = terminate_gsuite(gsuite_oauth_token, config['GSUITE_USERS_ENDPT'])
+        service_account_json_key = {
+            'type': config['GSUITE_ACCOUNT_TYPE'],
+            'project_id': config['GSUITE_PROJECT_ID'],
+            'private_key_id': config['GSUITE_PRIVATE_KEY_ID'],
+            'private_key': config['GSUITE_PRIVATE_KEY'],
+            'client_email': config['GSUITE_CLIENT_EMAIL'],
+            'client_id': config['GSUITE_CLIENT_ID'],
+            'auth_uri': config['GSUITE_AUTH_URI'],
+            'token_uri': config['GSUITE_TOKEN_URI'],
+            'auth_provider_x509_cert_url': config['GSUITE_AUTH_PROVIDER_CERT_URL'],
+            'client_x509_cert_url': config['GSUITE_CLIENT_CERT_URL'],
+        }
+        gsuite = terminate_gsuite(
+            service_account_json_key,
+            os.environ['GSUITE_SUBJECT'],
+        )
 
         configuration[SupportedReliantParties.GSUITE] = gsuite
 
