@@ -45,6 +45,11 @@ td {
   padding-left: 16px;
 }
 
+#toggles {
+  width: 100%;
+  margin: 32px 0;
+}
+
 #terminate {
   display: block;
   margin-left: auto;

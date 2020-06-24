@@ -27,15 +27,47 @@ const TerminationForm = {
   template: `
     <div>
       <input v-model="username" id="username" placeholder="username@mozilla.com" type="text" />
+      <table id="toggles">
+        <tr>
+          <th>Reliant Party</th>
+          <th>Terminate?</th>
+        </tr>
+        <tr v-for="(state, ident) in supportedRPs">
+          <td>{{ state.repr }}</td>
+          <td>
+            <input type="checkbox" @change="toggle(ident)" v-bind:data-id="ident" checked />
+          </td>
+        </tr>
+      </table>
       <input v-on:click="submitJob" id="terminate" value="Terminate" type="button" />
     </div>
   `,
   data: () => ({
     username: '',
+    supportedRPs: {
+      [RP_SSO]: { repr: 'SSO', enabled: true },
+      [RP_GSUITE]: { repr: 'GSuite', enabled: true },
+      [RP_SLACK]: { repr: 'Slack', enabled: true },
+    },
   }),
   methods: {
+    toggle(ident) {
+      this.supportedRPs[ident].enabled = !this.supportedRPs[ident].enabled
+    },
+
     submitJob() {
-      this.$root.$emit('TerminateRequestSent', this.username)
+      let selected = []
+
+      for ([ident, state] of Object.entries(this.supportedRPs)) {
+        if (state.enabled) {
+          selected.push(ident)
+        }
+      }
+
+      this.$root.$emit('TerminateRequestSent', {
+        username: this.username,
+        selected,
+      })
     }
   }
 }
@@ -194,7 +226,7 @@ const Application = {
     StatusMessageList,
   },
   mounted() {
-    this.$root.$on('TerminateRequestSent', (username) => {
+    this.$root.$on('TerminateRequestSent', ({username, selected}) => {
       fetch(TERMINATE_ENDPT, {
         method: 'POST',
         headers: {
@@ -202,6 +234,7 @@ const Application = {
         },
         body: JSON.stringify({
           username,
+          selected
         }),
       })
       .then((response) => response.json())
