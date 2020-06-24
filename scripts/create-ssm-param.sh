@@ -22,8 +22,20 @@ if test -z "$ARN"; then
     >&2 echo "!!! Environment variable SLACK_TOKEN not set !!!";
     exit 1;
   fi
+
+  if test -z "$GSUITE_JSON_KEY_FILE"; then
+    >&2 echo "!!! Environment variable GSUITE_JSON_KEY_FILE not set !!!";
+    exit 1;
+  fi
+
+  if ! test -f "$GSUITE_JSON_KEY_FILE"; then
+    >&2 echo "!!! GSUITE_JSON_KEY_FILE is not a valid file path !!!";
+    exit 1;
+  fi
+
+  GSUITE_PRIVATE_KEY="$(python scripts/encode-gsuite-private-key.py)"
   
-  SECRETS="OIDC_CLIENT_SECRET=$OIDC_CLIENT_SECRET,SSO_CLIENT_SECRET=$SSO_CLIENT_SECRET,SLACK_TOKEN=$SLACK_TOKEN,SIGNING_KEY_ECDSA=$SIGNING_KEY_ECDSA" 
+  SECRETS="OIDC_CLIENT_SECRET=$OIDC_CLIENT_SECRET,SSO_CLIENT_SECRET=$SSO_CLIENT_SECRET,SLACK_TOKEN=$SLACK_TOKEN,SIGNING_KEY_ECDSA=$SIGNING_KEY_ECDSA,GSUITE_PRIVATE_KEY=$GSUITE_PRIVATE_KEY" 
 
   aws ssm put-parameter \
     --name $PARAMETER_NAME \
