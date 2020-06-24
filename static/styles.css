@@ -54,14 +54,13 @@ td {
   display: block;
   margin-left: auto;
   margin-right: auto;
-  min-height: 240px;
+  min-height: 64px;
   min-width: 240px;
   border: none;
   background-color: red;
   font-weight: 600;
   font-size: 2.0em;
   color: white;
-  border-radius: 50% 50%;
 
 }
 
