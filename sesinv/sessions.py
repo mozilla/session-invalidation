@@ -3,6 +3,8 @@ from enum import Enum
 import typing as types
 import urllib.parse
 
+from google.oauth2 import service_account
+from googleapiclient import discovery
 import requests
 
 import sesinv.authentication as auth
@@ -184,62 +186,63 @@ def terminate_sso(creds: auth.SSOCreds, id_fmt: str, endpt: str) -> IJob:
     return _terminate
 
 
-def terminate_gsuite(bearer_token: str, endpt: str) -> IJob:
+def terminate_gsuite(
+    service_account_json_key: types.Dict[str, str],
+    subject: str,
+) -> IJob:
     '''Configure a job interface to terminate a GSuite session.
 
-    The `bearer_token` parameter is expected to be an OAuth token with the
-    **admin.directory.user** scope required to update a user profile.
+    The `service_account_json_key` must be the JSON object produced when a
+    private key is generated for the service account created for the session
+    invalidation app by a GSuite admin.
 
-    The `endpt` parameter is expected to be a format string containing the URL
-    of the user management GSuite endpoint, e.g.
-    `"https://www.googleapis.com/admin/directory/v1/users/{}"`.
+    The `subject` must be the email address of the GSuite admin that created
+    the service account and generated the private key to authenticate as it.
     '''
 
+    scopes = ['https://www.googleapis.com/auth/admin.directory.user']
+
     def _terminate(email: UserEmail) -> JobResult:
-        url = endpt.format(email)
-
-        headers = {
-            'Authorization': 'Bearer {}'.format(bearer_token),
-        }
-
-        err_msg = 'Failed to terminate GSuite session for {}'.format(email)
+        err_msg_prefix = f'Failed to terminate GSuite session for {email}'
 
         try:
-            response1 = requests.patch(url, headers=headers, json={
-                'suspended': True,
-            })
+            credentials = service_account.Credentials.from_service_account_info(
+                service_account_json_key, 
+                scopes=scopes,
+            )
+            credentials = credentials.with_subject(subject)
 
-            response2 = requests.patch(url, headers=headers, json={
-                'suspended': False,
-            })
+            service = discovery.build('admin', 'directory_v1', credentials=credentials)
+
+            resp1 = service.users().patch(
+                userKey=email,
+                body={
+                    'changePasswordAtNextLogin': True,
+                },
+            ).execute()
+
+            if resp1.get('changePasswordAtNextLogin') is not True:
+                return JobResult(
+                    TerminationState.ERROR,
+                    error=err_msg_prefix,
+                )
             
-            resp1_json = response1.json()
+            resp2 = service.users().patch(
+                userKey=email,
+                body={
+                    'changePasswordAtNextLogin': False,
+                },
+            ).execute()
 
-            resp2_json = response2.json()
-        except Exception:
+            if resp2.get('changePasswordAtNextLogin') is not False:
+                return JobResult(
+                    TerminationState.ERROR,
+                    error=err_msg_prefix,
+                )
+        except Exception as ex:
             return JobResult(
                 TerminationState.ERROR,
-                error=err_msg,
-            )
-
-        if response1.status_code != 200:
-            return JobResult(
-                TerminationState.ERROR,
-                error='{}: Status {}: Error: {}'.format(
-                    err_msg,
-                    response1.status_code,
-                    resp1_json['error']['message'],
-                ),
-            )
-
-        if response2.status_code != 200:
-            return JobResult(
-                TerminationState.ERROR,
-                error='{}: Status {}: Error: {}'.format(
-                    err_msg,
-                    response2.status_code,
-                    resp2_json['error']['message'],
-                ),
+                error=f'{err_msg_prefix}: Error: {ex.message}',
             )
 
         return JobResult(TerminationState.TERMINATED)
