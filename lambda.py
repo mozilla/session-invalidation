@@ -441,7 +441,7 @@ def terminate(event, context):
                 'body': '{"error": "Forbidden"}',
             }
 
-        username = json.loads(event['body']).get('username')
+        body_json = json.loads(event['body'])
     except:
         log(
             'Invalid request sent to terminate endpoint',
@@ -449,6 +449,10 @@ def terminate(event, context):
             actor=actor,
         )
         return error(400, 'Invalid body format. Expected JSON')
+        
+    username = body_json.get('username')
+
+    selected = body_json.get('selected', [])
 
     if username is None:
         log(
@@ -470,7 +474,7 @@ def terminate(event, context):
         log('Failed to load configuration: {ex}', logging.CRITICAL)
         return error(500, 'Unable to load configuration')
 
-    jobs = sesinv.sessions.configure_jobs(config)
+    jobs = sesinv.sessions.configure_jobs(config, selected)
 
     results = []
 
