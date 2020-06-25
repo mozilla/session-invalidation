@@ -165,8 +165,6 @@ def terminate_sso(creds: auth.SSOCreds, id_fmt: str, endpt: str) -> IJob:
 
         try:
             response = requests.post(invalidate_url, headers=headers)
-
-            #resp_json = response.json()
         except Exception as ex:
             return JobResult(
                 TerminationState.ERROR,
