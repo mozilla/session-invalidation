@@ -25,6 +25,10 @@ In order to configure GSuite, as an admin user:
 4. Grant the service account the scope `admin.directory.user`
 5. On the **Service Accounts** page, create a new JSON RSA key
 6. Download the JSON key
+7. Note the email address of the GSuite admin user that created everything
+
+The admin email will become the `GSUITE_SUBJECT` configuration parameter in
+`serverless.yml`.
 
 ## Slack
 
