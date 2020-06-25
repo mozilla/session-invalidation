@@ -19,12 +19,12 @@ SSO for mozilla is backed by OAuth. To add support for session invalidation:
 
 In order to configure GSuite, as an admin user:
 
-1. Create a project for the session invalidation application
+1. Create a project for the session invalidation application in GCP
 2. Create a service account for the project
-3. Grant the project access to the Admin SDK
-4. Grant the service account the scope `admin.directory.user`
-5. On the **Service Accounts** page, create a new JSON RSA key
-6. Download the JSON key
+3. On the Service Accounts page, create a new JSON RSA key
+4. Download the JSON key
+5. Grant the project Domain Wide Delegation access in admin console.
+6. Grant the service account the scope “https://www.googleapis.com/auth/admin.directory.user”
 7. Note the email address of the GSuite admin user that created everything
 
 The admin email will become the `GSUITE_SUBJECT` configuration parameter in
