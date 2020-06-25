@@ -22,18 +22,6 @@ USER_SESSION_COOKIE_KEY = 'user-session'
 USER_EMAIL_COOKIE_KEY = 'user-email'
 USER_STATE_COOKIE_KEY = 'user-state'
 
-ERROR_PAGE = '''<doctype HTML>
-<html>
-    <head>
-        <title>Session Invalidation Error</title>
-    </head>
-    <body>
-        <h1>Error</h1>
-        <p>{0}</p>
-    </body>
-</html>
-'''
-
 
 logger = logging.getLogger()
 logger.setLevel(os.environ.get('LOG_LEVEL', 'DEBUG'))
