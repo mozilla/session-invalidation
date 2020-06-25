@@ -83,7 +83,7 @@ served by your OIDC OP.
 * `OIDC_SCOPES` are the (space separated) scope names required by the application
 and likely do not need to be changed.
 * `SSO_CLIENT_ID` is the client ID of the SSO (OAuth) RP.
-* `MOZ_OAUTH_ENDPT` is a format string pointing to the API endpoint that is used
+* `SSO_USER_ENDPT` is a format string pointing to the API endpoint that is used
 to invalidate SSO user sessions.  It must have one `{}` format-string parameter,
 which will be filled with a value like `"ad|Mozilla-LDAP|target@mozilla.com"`.
 * `GSUITE_ACCOUNT_TYPE` is the value corresponding to the `"type"` field in

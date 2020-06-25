@@ -70,7 +70,7 @@ def configure_jobs(config: dict, selections: types.List[str]) -> JobConfig:
             grant_type=config['SSO_GRANT_TYPE'],
         )
         sso_id_fmt = config['SSO_ID_FORMAT']
-        sso = terminate_sso(sso_creds, sso_id_fmt, config['MOZ_OAUTH_ENDPT'])
+        sso = terminate_sso(sso_creds, sso_id_fmt, config['SSO_USER_ENDPT'])
 
         configuration[SupportedReliantParties.SSO] = sso
 

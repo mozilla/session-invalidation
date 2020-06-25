@@ -133,7 +133,7 @@ def load_config():
         'GSUITE_CLIENT_CERT_URL',
         'GSUITE_SUBJECT',
         'SQS_QUEUE_URL',
-        'MOZ_OAUTH_ENDPT',
+        'SSO_USER_ENDPT',
         'SLACK_LOOKUP_USER_ENDPT',
         'SLACK_SCIM_USERS_ENDPT',
     ]
@@ -506,7 +506,7 @@ def terminate(event, context):
 
 if  __name__ == '__main__':
     os.environ.update({
-        'MOZ_OAUTH_ENDPT': 'https://auth-dev.mozilla.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser',
+        'SSO_USER_ENDPT': 'https://auth-dev.mozilla.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser',
         'SLACK_LOOKUP_USER_ENDPT': 'https://slack.com/api/users.lookupByEmail',
         'SLACK_SCIM_USERS_ENDPT': 'https://api.slack.com/scim/v1/Users',
         'SSO_ID_FORMAT': 'ad|Mozilla-LDAP-Dev|{}',
