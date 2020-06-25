@@ -1,6 +1,6 @@
-# FOR SECURITY PURPOSES SETTINGS.cfg IS IGNORED WHILE DEVELOPMENT TAKES PLACE
-# TO PREVENT SECURE TOKENS FROM BEING LEAKED
-settings.cfg
+# Directory where keys are stored during development.
+# They are all encrypted but we do not want them on Github regardless.
+keys/
 
 # JavaScript dependencies for serverless plugins
 node_modules/
