@@ -75,11 +75,17 @@ def configure_jobs(config: dict, selections: types.List[str]) -> JobConfig:
         configuration[SupportedReliantParties.SSO] = sso
 
     if SupportedReliantParties.GSUITE.value in selections:
+        # We encode the RSA private key to hex to store in SSM because the
+        # newline characters present in PEM mess with our parsing.
+        private_key = bytearray\
+            .fromhex(config['GSUITE_PRIVATE_KEY'])\
+            .decode('utf-8')
+
         service_account_json_key = {
             'type': config['GSUITE_ACCOUNT_TYPE'],
             'project_id': config['GSUITE_PROJECT_ID'],
             'private_key_id': config['GSUITE_PRIVATE_KEY_ID'],
-            'private_key': config['GSUITE_PRIVATE_KEY'],
+            'private_key': private_key,
             'client_email': config['GSUITE_CLIENT_EMAIL'],
             'client_id': config['GSUITE_CLIENT_ID'],
             'auth_uri': config['GSUITE_AUTH_URI'],
@@ -89,7 +95,7 @@ def configure_jobs(config: dict, selections: types.List[str]) -> JobConfig:
         }
         gsuite = terminate_gsuite(
             service_account_json_key,
-            os.environ['GSUITE_SUBJECT'],
+            config['GSUITE_SUBJECT'],
         )
 
         configuration[SupportedReliantParties.GSUITE] = gsuite
@@ -242,7 +248,7 @@ def terminate_gsuite(
         except Exception as ex:
             return JobResult(
                 TerminationState.ERROR,
-                error=f'{err_msg_prefix}: Error: {ex.message}',
+                error=f'{err_msg_prefix}: Error: {ex}',
             )
 
         return JobResult(TerminationState.TERMINATED)
