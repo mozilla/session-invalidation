@@ -58,20 +58,18 @@ function's wrapper (e.g. `terminate_imaginary_rp`) in the `configure_jobs`
 function in `sesinv/sessions.py`. `configure_jobs` returns a
 dictionary mapping the identifier that you added to `SupportedReliantParties` to
 an `IJob` function.  So, for example, you might set up your new function with
-the following code additions to `configure_jobs`:
+the following code additions to `configure_jobs`.  Note that `configure_jobs` is
+called with a list of identifiers of RPs that the user would like to terminate,
+and so your termination function should only be configured if it is selected.
 
 ```py
-    imaginary_rp = sesinv.terminate_imaginary_rp(
-        config['UNIQUE'],
-        config['PARAMETERS'],
-    )
+    if SupportedReliantParties.IMAGINARY_RP.value in selections:
+      imaginary_rp = sesinv.terminate_imaginary_rp(
+          config['UNIQUE'],
+          config['PARAMETERS'],
+      )
 
-    # ...
-
-    return {
-        # ...
-        SupportedReliantParties.IMAGINARY_RP: imaginary_rp,
-    }
+      configured[SupportedReliantParties.IMAGINARY_RP] = imaginary_rp
 ```
 
 The last thing you'll need to add are definitions of the configuration variables
@@ -94,13 +92,14 @@ time someone sends a valid, authenticated request to the `/terminate` endpoint.
 The last thing to add is support to the frontend application so that users will
 be able to see output associated with the RP you are supporting.  All of the
 code for the frontend exists in `static/main.js`.
-This involves three steps:
+This involves the following steps:
 
 1. Adding the shared identifier you specified in your change to
    `SupportedReliantParties`.
-2. Adding a column to the main output table to display the state of your RP's
+2. Adding an enable/disable toggle.
+3. Adding a column to the main output table to display the state of your RP's
    session.
-3. Handling changes to the session state in the application logic.
+4. Handling changes to the session state in the application logic.
 
 
 The first step is very straightforward.  Toward the top of the file, you will
@@ -112,7 +111,19 @@ same as the one you supplied to `SupportedReliantParties`.
 const RP_IMAGINARY = 'imaginary_rp'
 ```
 
-Second, find the `template` field of the `TerminationResults` component and
+Second, navigate to the definition the `supportedRPs` property of the
+`TerminationForm` component's `data` method.  Add a new property to this object
+with the identifier of your new RP and map it to an object with a string
+representation and a boolean `enabled` field.  Since the toggle checkboxes are
+checked by default, `enabled` should default to `true`.
+
+```js
+    supportedRPs: {
+      [RP_IMAGINARY]: { repr: 'Imaginary', enabled: true },
+    }
+```
+
+Next, find the `template` field of the `TerminationResults` component and
 add a new table header element and table data cell for the table.
 
 ```html
