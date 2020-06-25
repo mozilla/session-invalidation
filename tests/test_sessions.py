@@ -1,10 +1,55 @@
 from datetime import datetime, timedelta
 import unittest
+from unittest.mock import patch
 
 import requests_mock
 
 import sesinv.sessions as sessions
 import sesinv.authentication as auth
+
+
+class GsuiteCredentialsMock:
+    def __init__(self):
+        self.subject = None
+
+    def with_subject(self, subject):
+        self.subject = subject
+
+        return self
+
+
+class GsuiteServiceMock:
+    class Executor:
+        def __init__(self, result):
+            self._result = result
+
+        def execute(self):
+            return self._result
+
+
+    class UsersAPI:
+        def __init__(self, service, result):
+            self._service = service
+            self._result = result
+
+        def patch(self, userKey='', body=None):
+            self._service.calls.append({
+                'userKey': userKey,
+                'body': body,
+            })
+
+            return GsuiteServiceMock.Executor(self._result)
+
+
+    def __init__(self, call_results):
+        self.calls = []
+
+        self._results = call_results
+
+    def users(self):
+        result = self._results[len(self.calls) % len(self._results)]
+
+        return GsuiteServiceMock.UsersAPI(self, result)
 
 
 class TestSessionInvalidators(unittest.TestCase):
@@ -71,58 +116,119 @@ class TestSessionInvalidators(unittest.TestCase):
             assert result.error is None
             assert result.new_state == sessions.TerminationState.TERMINATED
 
-    def test_terminate_gsuite_error_handling(self):
-        with requests_mock.Mocker() as mock:
-            mock.patch(
-                requests_mock.ANY,
-                status_code=400,
-                json={'error': {'message': 'test fail'}},
-            )
+    @patch('googleapiclient.discovery.build')
+    @patch('google.oauth2.service_account.Credentials.from_service_account_info')
+    def test_terminate_gsuite_success_case(
+        self,
+        service_account_mock,
+        discovery_mock,
+    ):
+        discovery = GsuiteServiceMock([
+            {
+                'changePasswordAtNextLogin': True,
+            },
+            {
+                'changePasswordAtNextLogin': False,
+            }
+        ])
 
-            terminate = sessions.terminate_gsuite(
-                'testtoken',
-                'http://test.com/endpoint/{}',
-            )
+        discovery_mock.return_value = discovery
 
-            result = terminate('testuser@mozilla.com')
+        credentials = GsuiteCredentialsMock()
 
-            history = mock.request_history
-            assert len(history) == 2
+        service_account_mock.return_value = credentials
 
-            e_url = 'test.com/endpoint/testuser@mozilla.com'
-            assert history[0].url.endswith(e_url)
-            assert history[1].url.endswith(e_url)
+        terminate = sessions.terminate_gsuite(
+            {
+                'private_key': 'fake',
+            },
+            'subject@test.com',
+        )
 
-            assert history[0].json()['suspended'] is True
-            assert history[1].json()['suspended'] is False
+        result = terminate('testuser@mozilla.com')
 
-            assert result.error is not None
-            assert 'Status 400' in result.error
-            assert result.new_state == sessions.TerminationState.ERROR
+        assert result.new_state == sessions.TerminationState.TERMINATED
 
-    def test_terminate_gsuite_success_case(self):
-        with requests_mock.Mocker() as mock:
-            mock.patch(requests_mock.ANY, status_code=200, json={})
+        assert credentials.subject == 'subject@test.com'
 
-            terminate = sessions.terminate_gsuite(
-                'testtoken',
-                'http://test.com/endpoint/{}',
-            )
+        assert len(discovery.calls) == 2
+        assert discovery.calls[0] == {
+            'userKey': 'testuser@mozilla.com',
+            'body': {
+                'changePasswordAtNextLogin': True,
+            },
+        }
+        assert discovery.calls[1] == {
+            'userKey': 'testuser@mozilla.com',
+            'body': {
+                'changePasswordAtNextLogin': False,
+            },
+        }
 
-            result = terminate('testuser@mozilla.com')
+    @patch('googleapiclient.discovery')
+    @patch('google.oauth2.service_account')
+    def test_terminate_gsuite_error_handling_1(
+        self,
+        service_account_mock,
+        discovery_mock,
+    ):
+        discovery = GsuiteServiceMock([
+            {
+                'missingExpectedKey': True,
+            },
+        ])
 
-            history = mock.request_history
-            assert len(history) == 2
+        discovery_mock.return_value = discovery
 
-            e_url = 'test.com/endpoint/testuser@mozilla.com'
-            assert history[0].url.endswith(e_url)
-            assert history[1].url.endswith(e_url)
+        credentials = GsuiteCredentialsMock()
 
-            assert history[0].json()['suspended'] is True
-            assert history[1].json()['suspended'] is False
+        service_account_mock.return_value = credentials
 
-            assert result.error is None
-            assert result.new_state == sessions.TerminationState.TERMINATED
+        terminate = sessions.terminate_gsuite(
+            {
+                'private_key': 'fake',
+            },
+            'subject@test.com',
+        )
+
+        result = terminate('testuser@mozilla.com')
+
+        assert result.new_state == sessions.TerminationState.ERROR
+        assert result.error is not None
+
+    @patch('googleapiclient.discovery')
+    @patch('google.oauth2.service_account')
+    def test_terminate_gsuite_error_handling_2(
+        self,
+        service_account_mock,
+        discovery_mock,
+    ):
+        discovery = GsuiteServiceMock([
+            {
+                'changePasswordAtNextLogin': True,
+            },
+            {
+                'changePasswordAtNextLogin': True,
+            }
+        ])
+
+        discovery_mock.return_value = discovery
+
+        credentials = GsuiteCredentialsMock()
+
+        service_account_mock.return_value = credentials
+
+        terminate = sessions.terminate_gsuite(
+            {
+                'private_key': 'fake',
+            },
+            'subject@test.com',
+        )
+
+        result = terminate('testuser@mozilla.com')
+
+        assert result.new_state == sessions.TerminationState.ERROR
+        assert result.error is not None
 
     def test_terminate_slack_failed_user_lookup(self):
         with requests_mock.Mocker() as mock:
