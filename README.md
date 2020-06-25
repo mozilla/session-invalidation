@@ -34,6 +34,16 @@ Terminating access to individual RPs beyond this point must be done on a
 service-by-service basis, and this tool makes it relatively easy to implement
 new functionality to do just that.
 
+### GSuite
+
+GSuite is used by Mozilla and many organizations as one of the primary sources
+of common services such as email, calendars etc.  An attacker with access to a
+user's GSuite session could potentially access these services and send malicious
+communications to phish other individuals, read emails and access sensitive
+documents.  By terminating a user's GSuite session, we can provent them from
+gaining further access to sensitive resources or manipulating others into
+downloading malware or submitting credentials to an attacker-owned destination.
+
 ### Slack
 
 Where Slack is used by organizations for sensitive communications and file
