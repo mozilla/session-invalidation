@@ -61,6 +61,14 @@ Session termination for SSO (OAuth) relies on an
 that requires the `update:users` scope.  After requesting these credentials,
 you should get an OAuth client ID and client secret.
 
+### GSuite
+
+Session termination for GSuite relies on a
+[service account](https://developers.google.com/identity/protocols/oauth2/service-account#top_of_page)
+created by an admin for a project granted access to the Admin SDK. The service
+account must have the `https://developers.google.com/identity/protocols/oauth2/service-account#top_of_page` scope
+granted to it.
+
 ## General Configuration
 
 All of the non-secret configuration for the application is stored in the
@@ -78,9 +86,26 @@ and likely do not need to be changed.
 * `MOZ_OAUTH_ENDPT` is a format string pointing to the API endpoint that is used
 to invalidate SSO user sessions.  It must have one `{}` format-string parameter,
 which will be filled with a value like `"ad|Mozilla-LDAP|target@mozilla.com"`.
-* `GSUITE_USERS_ENDPT` is a format string pointing to the GSuite users API
-endpoint.  It must have one `{}` format string parameter, which will be filled
-with a value like `"target@mozilla.com"`.
+* `GSUITE_ACCOUNT_TYPE` is the value corresponding to the `"type"` field in
+the service account JSON key.
+* `GSUITE_PROJECT_ID` is the value corresponding to the `"project_id"` field in
+the service account JSON key.
+* `GSUITE_PRIVATE_KEY_ID` is the value corresponding to the `"private_key_id"`
+field in the service account JSON key.
+* `GSUITE_CLIENT_EMAIL` is the value corresponding to the `"client_id"`
+field in the service account JSON key.
+* `GSUITE_CLIENT_ID` is the value corresponding to the `"client_email"`
+field in the service account JSON key.
+* `GSUITE_AUTH_URI` is the value corresponding to the `"auth_uri"`
+field in the service account JSON key.
+* `GSUITE_TOKEN_URI` is the value corresponding to the `"token_uri"`
+field in the service account JSON key.
+* `GSUITE_AUTH_PROVIDER_CERT_URL` is the value corresponding to the
+`"auth_provider_x509_cert_url"` field in the service account JSON key.
+* `GSUITE_CLIENT_CERT_URL` is the value corresponding to the
+`"client_x509_cert_url"` field in the service account JSON key.
+* `GSUITE_SUBJECT` is the email address of the GSuite admin that created your
+project's service account.
 * `SLACK_LOOKUP_USER_ENDPT` must point to Slack's
 [users.lookupUserByEmail](https://api.slack.com/methods/users.lookupByEmail)
 endpoint.
@@ -122,6 +147,11 @@ authenticate users of the application.
 required to terminate SSO (OAuth) sessions.
 * `SLACK_TOKEN`, the OAuth token created for your application to invoke the
 Slack SCIM API.
+* `GSUITE_JSON_KEY_FILE`, the path to the `.json` key file created to
+authenticate as your project's service account.
+
+The only field extracted from the `GSUITE_JSON_KEY_FILE` is the `"private_key"`
+which is encoded to hex for storage in SSM.
 
 This script also automatically generates a secure key used to sign user
 session cookies after they authenticate via SSO.
@@ -142,6 +172,7 @@ you can initiate a deployment simply by running
 OIDC_CLIENT_SECRET=<client secret>\
 SSO_CLIENT_SECRET=<sso secret>\
 SLACK_TOKEN=<token>\
+GSUITE_JSON_KEY_FILE=/path/to/session-invalidation-key.json\
 make deploy
 ```
 
