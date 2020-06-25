@@ -32,8 +32,8 @@ In order to configure Slack to obtain credentials for the session invalidation
 app:
 
 1. Create an application with the following OAuth user scopes:
-  * `admin`
-  * `users:read`
-  * `users:read.email`
+    * `admin`
+    * `users:read`
+    * `users:read.email`
 2. On the app home page, navigate to **OAuth & Permissions** page
 3. Copy the **OAuth Access Token**
