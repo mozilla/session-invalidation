@@ -82,10 +82,6 @@ is assigned.
 served by your OIDC OP.
 * `OIDC_SCOPES` are the (space separated) scope names required by the application
 and likely do not need to be changed.
-* `SSO_CLIENT_ID` is the client ID of the SSO (OAuth) RP.
-* `SSO_USER_ENDPT` is a format string pointing to the API endpoint that is used
-to invalidate SSO user sessions.  It must have one `{}` format-string parameter,
-which will be filled with a value like `"ad|Mozilla-LDAP|target@mozilla.com"`.
 * `GSUITE_ACCOUNT_TYPE` is the value corresponding to the `"type"` field in
 the service account JSON key.
 * `GSUITE_PROJECT_ID` is the value corresponding to the `"project_id"` field in
@@ -111,6 +107,10 @@ project's service account.
 endpoint.
 * `SLACK_SCIM_USERS_ENDPT` must point to Slack's 
 [SCIM Users API](https://api.slack.com/scim).
+* `SSO_CLIENT_ID` is the client ID of the SSO (OAuth) RP.
+* `SSO_USER_ENDPT` is a format string pointing to the API endpoint that is used
+to invalidate SSO user sessions.  It must have one `{}` format-string parameter,
+which will be filled with a value like `"ad|Mozilla-LDAP|target@mozilla.com"`.
 * `SSO_ID_FORMAT` specifies the format to encode a target user's email address
 into requests for the `MOZ_OAUTH_ENDPT` endpoint.
 * `SSO_AUTH_URL` is the token endpoint required to authenticate the application
