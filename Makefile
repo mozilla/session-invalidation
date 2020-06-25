@@ -20,9 +20,6 @@ requirements-deploy:
 test: requirements-test
 	python -m unittest discover -s tests
 
-install-serverless:
-	./scripts/install-serverless.sh
-
 deploy-functions: requirements-deploy 
 	./scripts/deploy-functions.sh
 
@@ -38,4 +35,4 @@ delete-ssm-parameter:
 teardown-deploy: clean delete-static-content delete-ssm-parameter
 	serverless remove
 
-deploy: install-serverless deploy-functions upload-static-content
+deploy: deploy-functions upload-static-content

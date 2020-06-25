@@ -178,11 +178,10 @@ make deploy
 
 This process will:
 
-1. Check that serverless is installed
-2. Create an SSM parameter containing the secrets provided
-3. Install the project dependencies to the local `lib/` folder
-4. Deploy the AWS Lambda funtions and finally
-5. Upload static files for the frontend to AWS S3
+1. Create an SSM parameter containing the secrets provided
+2. Install the project dependencies to the local `lib/` folder
+3. Deploy the AWS Lambda funtions and finally
+4. Upload static files for the frontend to AWS S3
 
 Assuming you have performed these steps at least once before, simply running
 
