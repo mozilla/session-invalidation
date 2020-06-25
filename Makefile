@@ -1,17 +1,12 @@
-VENV_DIR := $(HOME)/.pyenv/versions/session-invalidation
-
 clean:
 	rm -rf $(VENV_DIR) && rm -rf *.egg-info && rm -rf dist && rm -rf *.log*
 	rm -rf lib
 
-venv:
-	./scripts/setup-pyenv.sh
-
-requirements: venv
+requirements:
 	pip install -r requirements.txt
 	npm install
 
-requirements-test: venv
+requirements-test:
 	pip install -r requirements-test.txt
 
 requirements-deploy:
