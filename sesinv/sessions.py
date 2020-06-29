@@ -157,9 +157,7 @@ def terminate_sso(creds: auth.SSOCreds, id_fmt: str, endpt: str) -> IJob:
         except auth.Error as err:
             return JobResult(
                 TerminationState.ERROR,
-                error='Failed to retrieve SSO OAuth token: Error {}'.format(
-                    err.message,
-                ),
+                error=f'Failed to retrieve SSO OAuth token: Error {err.message}',
             )
 
         username = email.split('@')[0]
@@ -169,10 +167,10 @@ def terminate_sso(creds: auth.SSOCreds, id_fmt: str, endpt: str) -> IJob:
         invalidate_url = endpt.format(user_id)
 
         headers = {
-            'Authorization': 'Bearer {}'.format(bearer_token),
+            'Authorization': f'Bearer {bearer_token}',
         }
         
-        err_msg = 'Failed to terminate SSO session for {}'.format(email)
+        err_msg = f'Failed to terminate SSO session for {email}'
 
         try:
             response = requests.post(invalidate_url, headers=headers)
@@ -185,7 +183,7 @@ def terminate_sso(creds: auth.SSOCreds, id_fmt: str, endpt: str) -> IJob:
         if response.status_code >= 300:
             return JobResult(
                 TerminationState.ERROR,
-                error='{}: Status {}'.format(err_msg, response.status_code),
+                error=f'{err_msg}: Status {response.status_code}',
             )
 
         note = 'Note: The SSO API does not provide information to indicate '\
@@ -287,10 +285,10 @@ def terminate_slack(
 
     def _terminate(email: UserEmail) -> JobResult:
         headers = {
-            'Authorization': 'Bearer {}'.format(bearer_token),
+            'Authorization': f'Bearer {bearer_token}',
         }
 
-        err_msg = 'Failed to terminate Slack session for {}'.format(email)
+        err_msg = f'Failed to terminate Slack session for {email}'
             
         try:
             response = requests.post(
@@ -303,19 +301,16 @@ def terminate_slack(
         except Exception as ex:
             return JobResult(
                 TerminationState.ERROR,
-                error='{}: Could not find user in Slack'.format(err_msg),
+                error=f'{err_msg}: Could not find user in Slack',
             )
 
         if not resp_json['ok']:
             return JobResult(
                 TerminationState.ERROR,
-                error='{}: Error from slack: {}'.format(
-                    err_msg,
-                    resp_json['error']
-                ),
+                error=f'{err_msg}: Error from slack: {resp_json["error"]}',
             )
 
-        update_user = '{}/{}'.format(update_endpt, resp_json['user']['id'])
+        update_user = f'{update_endpt}/{resp_json["user"]["id"]}'
 
         try:
             response1 = requests.patch(update_user, headers=headers, json={
@@ -342,21 +337,17 @@ def terminate_slack(
             )
 
         if response1.status_code >= 300 or not resp1_json.get('ok', True):
-            err_add = 'Could not deactive: Status {}: Error: {}'.format(
-                response1.status_code,
-                resp1_json['error'],
-            )
+            err_add = f'Could not deactive: Status {response1.status_code}: '\
+                f'Error: {resp1_json["error"]}'
 
             return JobResult(
                 TerminationState.ERROR,
-                error='{}: {}'.format(err_msg, err_add),
+                error='{err_msg}: {err_add}',
             )
         
         if response2.status_code >= 300 or not resp2_json.get('ok', True):
-            err_add = 'Could not reactivate: Status {}: Error: {}'.format(
-                response2.status_code,
-                resp2_json['error'],
-            )
+            err_add = 'Could not reactivate: Status {response2.status_code}: '\
+                f'Error: {resp2_json["error"]}'
 
             out = f'The Slack account owned by {email} has been '\
             'deactivated. Be sure to have a Slack admin reactivate the '\
@@ -365,7 +356,7 @@ def terminate_slack(
             return JobResult(
                 TerminationState.ERROR,
                 output=out,
-                error='{}: {}'.format(err_msg, err_add),
+                error='{err_msg}: {err_add}',
             )
 
         return JobResult(TerminationState.TERMINATED)
