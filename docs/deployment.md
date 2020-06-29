@@ -74,54 +74,31 @@ granted to it.
 All of the non-secret configuration for the application is stored in the
 `provider.environment` section of `serverless.yml`.
 
-* `SELF_DOMAIN` is configured under `custom.customDomain.domainName` at the
-bottom of the file and is the domain name to which your TLS certificate
-is assigned.
-* `OIDC_CLIENT_ID` is the client ID provided to you by your OIDC OP.
-* `OIDC_DISCOVERY_URI` is the URI pointing to the `openid-configuration` file
-served by your OIDC OP.
-* `OIDC_SCOPES` are the (space separated) scope names required by the application
-and likely do not need to be changed.
-* `GSUITE_ACCOUNT_TYPE` is the value corresponding to the `"type"` field in
-the service account JSON key.
-* `GSUITE_PROJECT_ID` is the value corresponding to the `"project_id"` field in
-the service account JSON key.
-* `GSUITE_PRIVATE_KEY_ID` is the value corresponding to the `"private_key_id"`
-field in the service account JSON key.
-* `GSUITE_CLIENT_EMAIL` is the value corresponding to the `"client_id"`
-field in the service account JSON key.
-* `GSUITE_CLIENT_ID` is the value corresponding to the `"client_email"`
-field in the service account JSON key.
-* `GSUITE_AUTH_URI` is the value corresponding to the `"auth_uri"`
-field in the service account JSON key.
-* `GSUITE_TOKEN_URI` is the value corresponding to the `"token_uri"`
-field in the service account JSON key.
-* `GSUITE_AUTH_PROVIDER_CERT_URL` is the value corresponding to the
-`"auth_provider_x509_cert_url"` field in the service account JSON key.
-* `GSUITE_CLIENT_CERT_URL` is the value corresponding to the
-`"client_x509_cert_url"` field in the service account JSON key.
-* `GSUITE_SUBJECT` is the email address of the GSuite admin that created your
-project's service account.
-* `SLACK_LOOKUP_USER_ENDPT` must point to Slack's
-[users.lookupUserByEmail](https://api.slack.com/methods/users.lookupByEmail)
-endpoint.
-* `SLACK_SCIM_USERS_ENDPT` must point to Slack's 
-[SCIM Users API](https://api.slack.com/scim).
-* `SSO_CLIENT_ID` is the client ID of the SSO (OAuth) RP.
-* `SSO_USER_ENDPT` is a format string pointing to the API endpoint that is used
-to invalidate SSO user sessions.  It must have one `{}` format-string parameter,
-which will be filled with a value like `"ad|Mozilla-LDAP|target@mozilla.com"`.
-* `SSO_ID_FORMAT` specifies the format to encode a target user's email address
-into requests for the `MOZ_OAUTH_ENDPT` endpoint.
-* `SSO_AUTH_URL` is the token endpoint required to authenticate the application
-in order to make requests to the OAuth API.
-*  `SSO_AUDIENCE` is the OIDC audience parameter required to authenticate the
-application to make requests to the OAuth API.
-* `SSO_GRANT_TYPE` is the OIDC grant type parameter required to authenticate
-the application to make requests to the OAuth API.
-* `SQS_QUEUE_URL` is the URL of the [AWS SQS Queue](https://aws.amazon.com/sqs/)
-to which the application will write logs for consumption by MozDef.  It is
-generated during deployment.
+| Variable | Description | Dev Value | Prod Value |
+| -------- | ----------- | --------- | ---------- |
+| `SELF_DOMAIN` | Configured under `custom.customDomain.domainName` at the bottom of the file and is the domain name to which your TLS certificate is assigned. | `https://${self:custom.customDomain.domainName}` | `https://${self:custom.customDomain.domainName}` |
+|  `OIDC_CLIENT_ID` | The client ID provided to you by your OIDC OP. | `M6lxk8phwDaqH4gECMWDLxKxxZwJcDI7` | |
+| `OIDC_DISCOVERY_URI` | The URI pointing to the `openid-configuration` file served by your OIDC OP. | `https://auth-dev.mozilla.auth0.com/.well-known/openid-configuration` | `https://auth.mozilla.auth0.com/.well-known/openid-configuration` |
+| `OIDC_SCOPES` | Are the (space separated) scope names required by the application and likely do not need to be changed. | `openid profile email` | `openid profile email` |
+| `GSUITE_ACCOUNT_TYPE` | The value corresponding to the `"type"` field in the service account JSON key. | `service_account` | `service_account` |
+| `GSUITE_PROJECT_ID` | The value corresponding to the `"project_id"` field in the service account JSON key. | `session-invalidation-test` | `mozilla-session-invalidation` |
+| `GSUITE_PRIVATE_KEY_ID` | The value corresponding to the `"private_key_id"` field in the service account JSON key. | `b77d67c899cf4ddb79f4d49892b6fce0ae9058f2` | `33d19551aac10d2ca1f163bdeda46889608d867a` |
+| `GSUITE_CLIENT_EMAIL` | The value corresponding to the `"client_id"` field in the service account JSON key. | `sesinv-admin-822@session-invalidation-test.iam.gserviceaccount.com` | `mozilla-session-invalidation@mozilla-session-invalidation.iam.gserviceaccount.com` |
+| `GSUITE_CLIENT_ID` | The value corresponding to the `"client_email"` field in the service account JSON key. | `108687455550978238351` | `101355836648639176923` |
+| `GSUITE_AUTH_URI` | The value corresponding to the `"auth_uri"` field in the service account JSON key. | `https://accounts.google.com/o/oauth2/auth` | `https://accounts.google.com/o/oauth2/auth` |
+| `GSUITE_TOKEN_URI` | The value corresponding to the `"token_uri"` field in the service account JSON key. | `https://oauth2.googleapis.com/token` | `https://oauth2.googleapis.com/token` |
+| `GSUITE_AUTH_PROVIDER_CERT_URL` | The value corresponding to the `"auth_provider_x509_cert_url"` field in the service account JSON key. | `https://www.googleapis.com/oauth2/v1/certs` | `https://www.googleapis.com/oauth2/v1/certs` |
+| `GSUITE_CLIENT_CERT_URL` | The value corresponding to the `"client_x509_cert_url"` field in the service account JSON key. | `https://www.googleapis.com/robot/v1/metadata/x509/sesinv-admin-822%40session-invalidation-test.iam.gserviceaccount.com` | `https://www.googleapis.com/robot/v1/metadata/x509/sesinv-admin-822%40session-invalidation-test.iam.gserviceaccount.com` | 
+| `GSUITE_SUBJECT` | The email address of the GSuite admin that created your project's service account. | `gads_admin_bot@test.mozilla.com` | `gads_admin_bot@mozilla.com` |
+| `SLACK_LOOKUP_USER_ENDPT` | Must point to Slack's `users.lookupUserByEmail` endpoint. | `https://api.slack.com/methods/users.lookupByEmail` |  `https://api.slack.com/methods/users.lookupByEmail` |
+| `SLACK_SCIM_USERS_ENDPT` | Must point to Slack's  SCIM Users API endpoint. | `https://api.slack.com/scim` | `https://api.slack.com/scim` |
+| `SSO_CLIENT_ID` | The client ID of the SSO (OAuth) RP. | `eJPgs0CNdtyDW0bWTMByMb3Pan1F8n6n` | `J6oOrIBEv9QtmX5HQSPJCj68sMZuwfqS` |
+| `SSO_USER_ENDPT` | A format string pointing to the API endpoint that is used to invalidate SSO user sessions.  It must have one `{}` format-string parameter, which will be filled with a value like `"ad|Mozilla-LDAP|target@mozilla.com"`. | `https://auth-dev.mozilla.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser` | `https://auth.mozilla.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser` |
+| `SSO_ID_FORMAT` | Specifies the format to encode a target user's email address into requests for the `MOZ_OAUTH_ENDPT` endpoint. | `ad|Mozilla-LDAP-Dev|{}` | `ad|Mozilla-LDAP|{}` |
+| `SSO_AUTH_URL` | The token endpoint required to authenticate the application in order to make requests to the OAuth API. | `https://auth-dev.mozilla.auth0.com/oauth/token` | `https://auth.mozilla.auth0.com/oauth/token` |
+| `SSO_AUDIENCE` | The OIDC audience parameter required to authenticate the application to make requests to the OAuth API. | `https://auth-dev.mozilla.auth0.com/oauth/token` | `https://auth.mozilla.auth0.com/oauth/token` |
+| `SSO_GRANT_TYPE` | The OIDC grant type parameter required to authenticate the application to make requests to the OAuth API. | `client_credentials` | `client_credentials` |
+| `SQS_QUEUE_URL` | The URL of the [AWS SQS Queue](https://aws.amazon.com/sqs/) to which the application will write logs for consumption by MozDef.  It is generated during deployment. | `!Ref SQSToMozDef` | `!Ref SQSToMozDef` |
 
 ## Configuring Secrets
 
