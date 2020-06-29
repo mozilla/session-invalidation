@@ -100,6 +100,13 @@ All of the non-secret configuration for the application is stored in the
 | `SSO_GRANT_TYPE` | The OIDC grant type parameter required to authenticate the application to make requests to the OAuth API. | `client_credentials` | `client_credentials` |
 | `SQS_QUEUE_URL` | The URL of the [AWS SQS Queue](https://aws.amazon.com/sqs/) to which the application will write logs for consumption by MozDef.  It is generated during deployment. | `!Ref SQSToMozDef` | `!Ref SQSToMozDef` |
 
+Along with the `domainName` field at the bottom of `serverless.yml`, you will also find:
+
+| Variable | Description | Dev Value | Prod Value |
+| -------- | ----------- | --------- | ---------- |
+| `certificateArn` | The ARN of the AWS certificate for the domain. | `arn:aws:acm:us-west-2:656532927350:certificate/453c5160-daf4-4238-a195-9eb487a71d23` | ` arn:aws:acm:us-west-2:371522382791:certificate/a929838b-81a4-47f8-b648-50e4909f5e55` |
+| `hostedZoneId` | The ID of the hosted zone containing your domain. | `Z13VQZ50081YZU` | ` ZBALOKPGJTQW` |
+
 ## Configuring Secrets
 
 All secret values are provided via environment variables during deployment and
