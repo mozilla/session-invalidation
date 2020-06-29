@@ -59,6 +59,17 @@ IJob = types.Callable[[UserEmail], JobResult]
 JobConfig = types.Dict[SupportedReliantParties, IJob]
 
 def configure_jobs(config: dict, selections: types.List[str]) -> JobConfig:
+    '''Builds a dictionary mapping identifiers of reliant parties to functions
+    that can be called with the email address of a user to invaldiate the
+    sessions of for each of those RPs.
+
+    `config` is a dictionary of secrets and non-secret configuration values
+    pulled from environment variables.
+
+    `selections` is a list of the string identifiers of RPs to terminate
+    sessions for.  Only those present here will be configured.
+    '''
+
     configuration = {}
 
     if SupportedReliantParties.SSO.value in selections:
