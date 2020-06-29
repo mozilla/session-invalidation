@@ -347,9 +347,9 @@ def terminate_slack(
                 resp2_json['error'],
             )
 
-            out = 'The Slack account owned by {} has been '.format(email)
-            'deactivated. Be sure to have a Slack admin reactivate the '
-            'account within five (5) days.'
+            out = f'The Slack account owned by {email} has been '\
+            'deactivated. Be sure to have a Slack admin reactivate the '\
+            'account within five (5) days.'\
 
             return JobResult(
                 TerminationState.ERROR,
