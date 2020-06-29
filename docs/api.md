@@ -1,7 +1,5 @@
 # Session Invalidation API
 
-The Session Invalidation tool (name subject to change) has its backend
-implemented in Python with [Flask](https://flask.palletsprojects.com/).
 This document describes the endpoints that it exposes primarily for
 the purpose of documenting the interface between the frontend UI and the
 backend API.

@@ -11,8 +11,7 @@ attacker from using a compromised account to wreak havoc.
 ![Early demo image](https://raw.githubusercontent.com/mozilla/session-invalidation/master/docs/images/earlydemo.png)
 
 The Session Invalidation tool is implemented as a web application powered on
-the frontend by [VueJS](https://vuejs.org/) and by
-[Flask](https://flask.palletsprojects.com/en/1.1.x/) on the backend.
+the frontend by [VueJS](https://vuejs.org/) and by [AWS Lambda](https://aws.amazon.com/lambda/).
 
 A user need only provide the email address of the user whose accounts they
 wish to terminate, granted that this email address is tied to each of the
