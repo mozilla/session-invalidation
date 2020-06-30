@@ -2,30 +2,30 @@ service: mozilla-session-invalidation
 provider:
   name: aws
   runtime: python3.8
-  stage: dev
+  stage: production
   region: us-west-2
   environment:
     SELF_DOMAIN: 'https://${self:custom.customDomain.domainName}'
-    OIDC_CLIENT_ID: 'M6lxk8phwDaqH4gECMWDLxKxxZwJcDI7'
-    OIDC_DISCOVERY_URI: 'https://auth-dev.mozilla.auth0.com/.well-known/openid-configuration'
+    OIDC_CLIENT_ID: 'wX5uKEP7oV4wgxf0B3USOrDQ5kgHFda0'
+    OIDC_DISCOVERY_URI: 'https://auth.mozilla.auth0.com/.well-known/openid-configuration'
     OIDC_SCOPES: 'openid profile email'
     GSUITE_ACCOUNT_TYPE: 'service_account'
-    GSUITE_PROJECT_ID: 'session-invalidation-test'
-    GSUITE_PRIVATE_KEY_ID: 'b77d67c899cf4ddb79f4d49892b6fce0ae9058f2'
-    GSUITE_CLIENT_EMAIL: 'sesinv-admin-822@session-invalidation-test.iam.gserviceaccount.com'
-    GSUITE_CLIENT_ID: '108687455550978238351'
+    GSUITE_PROJECT_ID: 'mozilla-session-invalidation'
+    GSUITE_PRIVATE_KEY_ID: '33d19551aac10d2ca1f163bdeda46889608d867a'
+    GSUITE_CLIENT_EMAIL: 'mozilla-session-invalidation@mozilla-session-invalidation.iam.gserviceaccount.com'
+    GSUITE_CLIENT_ID: '101355836648639176923'
     GSUITE_AUTH_URI: 'https://accounts.google.com/o/oauth2/auth'
     GSUITE_TOKEN_URI: 'https://oauth2.googleapis.com/token'
     GSUITE_AUTH_PROVIDER_CERT_URL: 'https://www.googleapis.com/oauth2/v1/certs'
-    GSUITE_CLIENT_CERT_URL: 'https://www.googleapis.com/robot/v1/metadata/x509/sesinv-admin-822%40session-invalidation-test.iam.gserviceaccount.com'
-    GSUITE_SUBJECT: 'gads_admin_bot@test.mozilla.com'
+    GSUITE_CLIENT_CERT_URL: 'https://www.googleapis.com/robot/v1/metadata/x509/mozilla-session-invalidation%40mozilla-session-invalidation.iam.gserviceaccount.com'
+    GSUITE_SUBJECT: 'gads_admin_bot@mozilla.com'
     SLACK_LOOKUP_USER_ENDPT: 'https://slack.com/api/users.lookupByEmail'
     SLACK_SCIM_USERS_ENDPT: 'https://api.slack.com/scim/v1/Users'
-    SSO_CLIENT_ID: 'eJPgs0CNdtyDW0bWTMByMb3Pan1F8n6n'
-    SSO_USER_ENDPT: 'https://auth-dev.mozilla.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser'
-    SSO_ID_FORMAT: 'ad|Mozilla-LDAP-Dev|{}'
-    SSO_AUTH_URL: 'https://auth-dev.mozilla.auth0.com/oauth/token'
-    SSO_AUDIENCE: 'https://auth-dev.mozilla.auth0.com/api/v2/'
+    SSO_CLIENT_ID: 'J6oOrIBEv9QtmX5HQSPJCj68sMZuwfqS'
+    SSO_USER_ENDPT: 'https://auth.mozilla.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser'
+    SSO_ID_FORMAT: 'ad|Mozilla-LDAP|{}'
+    SSO_AUTH_URL: 'https://auth.mozilla.auth0.com/oauth/token'
+    SSO_AUDIENCE: 'https://auth.mozilla.auth0.com/api/v2/'
     SSO_GRANT_TYPE: 'client_credentials'
     SQS_QUEUE_URL: !Ref SQSToMozDef
   iamRoleStatements:
@@ -128,9 +128,9 @@ plugins:
   - serverless-domain-manager
 custom:
   customDomain:
-    domainName: 'session-invalidation.security.allizom.org'
-    certificateArn: 'arn:aws:acm:us-west-2:656532927350:certificate/453c5160-daf4-4238-a195-9eb487a71d23'
-    hostedZoneId:  'Z13VQZ50081YZU'
+    domainName: 'session-invalidation.security.mozilla.org'
+    certificateArn: 'arn:aws:acm:us-west-2:371522382791:certificate/a929838b-81a4-47f8-b648-50e4909f5e55'
+    hostedZoneId:  'ZBALOKPGJTQW'
     basePath: ''
     stage: ${self:provider.stage}
     createRoute53Record: true
