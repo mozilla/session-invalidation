@@ -2,9 +2,13 @@ clean:
 	rm -rf $(VENV_DIR) && rm -rf *.egg-info && rm -rf dist && rm -rf *.log*
 	rm -rf lib
 
-requirements:
+python-requirements:
 	pip install -r requirements.txt
+
+nodejs-requirements:
 	npm install
+
+requirements: python-requirements nodejs-requirements
 
 requirements-test:
 	pip install -r requirements-test.txt
@@ -28,9 +32,10 @@ delete-ssm-parameter:
 	aws ssm --output json delete-parameter --name session-invalidation-secrets
 
 teardown-deploy: clean delete-static-content delete-ssm-parameter
+	serverless delete_domain
 	serverless remove
 
-domain: requirements
+domain: nodejs-requirements
 	serverless create_domain
 
-deploy: deploy-functions upload-static-content
+deploy: domain deploy-functions upload-static-content
