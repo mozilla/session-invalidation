@@ -30,4 +30,7 @@ delete-ssm-parameter:
 teardown-deploy: clean delete-static-content delete-ssm-parameter
 	serverless remove
 
+domain: requirements
+	serverless create_domain
+
 deploy: deploy-functions upload-static-content

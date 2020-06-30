@@ -45,6 +45,15 @@ issued your certificate, registered with your OIDC Provider.  At Mozilla, that's
 SSO (search MANA for "SSO Request Form").  At the end, you should get a client ID
 and a client secret.
 
+Once your TLS certificate has been verified, you can create the domain that you
+configured at the bottom of `serverless deploy` by running the following `make`
+target.  Note that it can take up to about 40 minutes for your domain
+configuration to propagate across DNS servers.
+
+```
+make domain
+```
+
 Finally, you will need to acquire credentials for each of the reliant parties
 (RPs) supported by the application.
 
@@ -145,10 +154,11 @@ session cookies after they authenticate via SSO.
 Once you have:
 
 1. A TLS certificate verified for the domain configured in `serverless.yml`
-2. Configuration set up correctly in `serverless.yml`
-3. NodeJS, NPM and the serverless tools all installed
-4. Authenticated to AWS and
-5. Obtained all of the secrets you need
+2. Run `serverless create_domain` to create the domain you configured.
+3. Configuration set up correctly in `serverless.yml`
+4. NodeJS, NPM and the serverless tools all installed
+5. Authenticated to AWS and
+6. Obtained all of the secrets you need
 
 you can initiate a deployment simply by running
 
