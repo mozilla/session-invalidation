@@ -151,6 +151,40 @@ session cookies after they authenticate via SSO.
 
 ## Deployment Notes
 
+### Handling Secrets
+
+It is recommended that the secrets used by the application be deleted from any
+devices that stored them prior to their being uploaded to SSM.  This is to
+prevent the possibility of those credentials being mistakenly uploaded to
+version control (e.g. Github) or being retrieved by an attacker who succeeds
+at compromising the host(s) in question.
+
+In the case of any kind of emergency in which the session invalidation
+application must be re-deployed with the same secrets or with only a subset
+of them being modified, existing secrets can be copied from SSM Parameter Store.
+Some extra steps will have to be followed in particular to recreate a GSuite
+private key file to be read by `scripts/create-ssm-param.sh` via the
+`GSUITE_JSON_KEY_FILE` environment variable.  To set everything up for a new
+deployment, follow these steps.
+
+1. Copy the `OIDC_CLIENT_SECRET` value to a file.
+2. Copy the `SSO_CLIENT_SECRET` value to a file.
+3. Copy the `SLACK_TOKEN` value to a file.
+4. Copy the `GSUITE_PRIVATE_KEY` value to your clipboard.
+5. Run `scripts/create-gsuite-json-key-file.py` file as below.
+6. Run `make delete-ssm-parameter` to delete the stored secrets.
+
+```bash
+python scripts/create-gsuite-json-key-file.py <pasted key> <path to file>
+
+# Example
+# pythoh scripts/create-gsuite-json-key-file.py ABCDEF0123...988 ./gsuite-key.json
+```
+
+Now when you run `make deploy` you can provide the requisite environment
+variables with `GSUITE_JSON_KEY_FILE` set to `./gsuite-key.jsoon` and
+the deployment will be able to re-create the SSM parameter.
+
 ### S3 Bucket Management
 
 In the case that the Session Invalidation application has been deployed to
