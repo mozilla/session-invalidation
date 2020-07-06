@@ -49,7 +49,7 @@ resources:
     StaticContentBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${env:STATIC_CONTENT_BUCKET_NAME}
+        BucketName: ${self:provider.environment.STATIC_CONTENT_BUCKET_NAME}
         AccessControl: Private
     SQSToMozDef:
       Type: AWS::SQS::Queue
