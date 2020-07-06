@@ -1,0 +1,140 @@
+service: mozilla-session-invalidation
+provider:
+  name: aws
+  runtime: python3.8
+  stage: dev
+  region: us-west-2
+  environment:
+    SELF_DOMAIN: 'https://${self:custom.customDomain.domainName}'
+    OIDC_CLIENT_ID: 'M6lxk8phwDaqH4gECMWDLxKxxZwJcDI7'
+    OIDC_DISCOVERY_URI: 'https://auth-dev.mozilla.auth0.com/.well-known/openid-configuration'
+    OIDC_SCOPES: 'openid profile email'
+    GSUITE_ACCOUNT_TYPE: 'service_account'
+    GSUITE_PROJECT_ID: 'session-invalidation-test'
+    GSUITE_PRIVATE_KEY_ID: 'b77d67c899cf4ddb79f4d49892b6fce0ae9058f2'
+    GSUITE_CLIENT_EMAIL: 'sesinv-admin-822@session-invalidation-test.iam.gserviceaccount.com'
+    GSUITE_CLIENT_ID: '108687455550978238351'
+    GSUITE_AUTH_URI: 'https://accounts.google.com/o/oauth2/auth'
+    GSUITE_TOKEN_URI: 'https://oauth2.googleapis.com/token'
+    GSUITE_AUTH_PROVIDER_CERT_URL: 'https://www.googleapis.com/oauth2/v1/certs'
+    GSUITE_CLIENT_CERT_URL: 'https://www.googleapis.com/robot/v1/metadata/x509/sesinv-admin-822%40session-invalidation-test.iam.gserviceaccount.com'
+    GSUITE_SUBJECT: 'gads_admin_bot@test.mozilla.com'
+    SLACK_LOOKUP_USER_ENDPT: 'https://slack.com/api/users.lookupByEmail'
+    SLACK_SCIM_USERS_ENDPT: 'https://api.slack.com/scim/v1/Users'
+    SSO_CLIENT_ID: 'eJPgs0CNdtyDW0bWTMByMb3Pan1F8n6n'
+    SSO_USER_ENDPT: 'https://auth-dev.mozilla.auth0.com/api/v2/users/{}/multifactor/actions/invalidate-remember-browser'
+    SSO_ID_FORMAT: 'ad|Mozilla-LDAP-Dev|{}'
+    SSO_AUTH_URL: 'https://auth-dev.mozilla.auth0.com/oauth/token'
+    SSO_AUDIENCE: 'https://auth-dev.mozilla.auth0.com/api/v2/'
+    SSO_GRANT_TYPE: 'client_credentials'
+    SQS_QUEUE_URL: !Ref SQSToMozDef
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:ListBuckets
+        - s3:GetObject
+      Resource: !Join ["/", [!GetAtt "StaticContentBucket.Arn", "*"]]
+    - Effect: Allow
+      Action:
+        - ssm:GetParameter
+        - ssm:GetParameters
+      Resource: ${opt:secrets-param-arn}
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+      Resource: !GetAtt SQSToMozDef.Arn
+resources:
+  Resources:
+    StaticContentBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: session-invalidation-static-content
+        AccessControl: Private
+    SQSToMozDef:
+      Type: AWS::SQS::Queue
+      Properties:
+        MessageRetentionPeriod: 345600  # 4 days, the AWS default
+        Tags:
+          - Key: application
+            Value: session-invalidation
+          - Key: stack
+            Value: !Ref AWS::StackName
+          - Key: source
+            Value: https://github.com/mozilla/session-invalidation
+    SQSToMozDefReader:
+      Type: AWS::IAM::User
+      Properties:
+        Policies:
+          - PolicyName: ReceiveFromSessionInvalidationSQS
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - sqs:ReceiveMessage
+                    - sqs:ListQueues
+                    - sqs:DeleteMessage
+                    - sqs:GetQueueUrl
+                    - sqs:GetQueueAttributes
+                    - sqs:ChangeMessageVisibility
+                    - sqs:ListQueueTags
+                    - sqs:PurgeQueue
+                  Resource:
+                    - !GetAtt SQSToMozDef.Arn
+        Tags:
+          - Key: application
+            Value: session-invalidation
+          - Key: reader-for
+            Value: mozdef
+    SQSToMozDefReaderKey:
+      Type: AWS::IAM::AccessKey
+      Properties:
+        UserName: !Ref SQSToMozDefReader
+  Outputs:
+    StaticContentBucket:
+      Description: The URL of the S3 bucket used to host static content
+      Value:
+        Fn::GetAtt
+          - StaticContentBucket
+          - WebsiteURL
+    SQSToMozDefReaderAccessKey:
+      Description: The access key id belonging to the IAM user granting MozDef permission to read from SQS
+      Value: !Ref SQSToMozDefReaderKey
+    SQSToMozDefReaderSecretKey:
+      Description: The secret key belonging to the IAM user granting MozDef permission to read from SQS
+      Value: !GetAtt SQSToMozDefReaderKey.SecretAccessKey
+package:
+  include:
+    - sesinv/**
+    - lib/**
+functions:
+  index:
+    handler: lambda.index
+    events:
+      - http: get /
+  oidc_callback:
+    handler: lambda.callback
+    events:
+      - http: get /callback
+  static:
+    handler: lambda.static
+    events:
+      - http: get /static/{filename}
+  terminate:
+    handler: lambda.terminate
+    events:
+      - http: post /terminate
+plugins:
+  - serverless-domain-manager
+custom:
+  customDomain:
+    domainName: 'session-invalidation.security.allizom.org'
+    certificateArn: 'arn:aws:acm:us-west-2:656532927350:certificate/453c5160-daf4-4238-a195-9eb487a71d23'
+    hostedZoneId:  'Z13VQZ50081YZU'
+    basePath: ''
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+    securityPolicy: tls_1_2
+    apiType: rest
+    endpointType: regional
+    certificateRegion: us-west-2

@@ -7,7 +7,12 @@ however this first exception must only be accounted for during the very first
 deployment.  This document is intended to be read from top to bottom.  You'll
 find that most of the steps described here can be skipped after your first
 deploy, but it's important to understand what's happening before you run
-`make deploy`.
+`make deploy-dev` or `make deploy-prod`.
+
+Two deploy commands are made available to simplify the process of switching
+between deploying to a development environment and to a production environment.
+Corresponding to each is a `serverless-dev.yml` and `serverless-prod.yml` file
+that contain the configurations for each of Mozilla's environment respectively.
 
 ## Prerequisites
 
@@ -181,9 +186,10 @@ python scripts/create-gsuite-json-key-file.py <pasted key> <path to file>
 # pythoh scripts/create-gsuite-json-key-file.py ABCDEF0123...988 ./gsuite-key.json
 ```
 
-Now when you run `make deploy` you can provide the requisite environment
-variables with `GSUITE_JSON_KEY_FILE` set to `./gsuite-key.jsoon` and
-the deployment will be able to re-create the SSM parameter.
+Now when you run `make deploy-dev` or `make deploy-prod` you can provide the
+requisite environment variables with `GSUITE_JSON_KEY_FILE` set to
+`./gsuite-key.jsoon` and the deployment will be able to re-create the SSM
+parameter.
 
 ### S3 Bucket Management
 
@@ -232,7 +238,9 @@ OIDC_CLIENT_SECRET=<client secret>\
 SSO_CLIENT_SECRET=<sso secret>\
 SLACK_TOKEN=<token>\
 GSUITE_JSON_KEY_FILE=/path/to/session-invalidation-key.json\
-make deploy
+make deploy-dev
+# or
+# make deploy-prod
 ```
 
 This process will:
@@ -245,7 +253,9 @@ This process will:
 Assuming you have performed these steps at least once before, simply running
 
 ```
-make deploy
+make deploy-dev
+# or
+# make deploy-prod
 ```
 
 without environment variables will be sufficient to re-deploy the lambda

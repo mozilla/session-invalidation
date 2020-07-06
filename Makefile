@@ -19,6 +19,12 @@ requirements-deploy:
 test: requirements-test
 	python -m unittest discover -s tests
 
+serverless-dev:
+	cp serverless-dev.yml serverless.yml
+
+serverless-prod:
+	cp serverless-prod.yml serverless.yml
+
 deploy-functions: requirements-deploy 
 	./scripts/deploy-functions.sh
 
@@ -38,4 +44,8 @@ teardown-deploy: clean delete-static-content delete-ssm-parameter
 domain: nodejs-requirements
 	serverless create_domain
 
-deploy: domain deploy-functions upload-static-content
+deploy-dev: domain serverless-dev deploy-functions upload-static-content
+	rm serverless.yml
+
+deploy-prod: domain serverless-prod deploy-functions upload-static-content
+	rm serverless.yml
