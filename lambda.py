@@ -191,6 +191,12 @@ def index(event, context):
 
     log('Session Invalidation application requested', logging.INFO)
 
+    # When no query string parameters are provided, the value is set to `None`.
+    # Thus calling `event.get('queryStringParameters', {})` returns `None`.
+    query_params = event.get('multiValueQueryStringParameters') or {}
+
+    usernames = query_params.get('username', [])
+
     cookie_str = event.get('headers', {}).get('cookie', '')
 
     try:
@@ -203,19 +209,28 @@ def index(event, context):
                 actor=actor,
             )
 
+            index_page = static_content('index.html').format(
+                f'[{", ".join(usernames)}]',
+            )
+
             return {
                 'statusCode': 200,
                 'headers': {
                     'Content-Type': 'text/html',
                 },
-                'body': static_content('index.html'),
+                'body': index_page,
             }
         else:
             discovery = sesinv.oidc.discovery_document(
                 os.environ['OIDC_DISCOVERY_URI'],
             )
 
-            state = os.urandom(32).hex()
+            encoded_usernames = bytearray(
+                ','.join(usernames),
+                'utf-8',
+            ).hex()
+
+            state = f'{os.urandom(8).hex()}_{encoded_usernames}'
 
             authorize_endpoint = sesinv.oidc.authorize_redirect_uri(
                 discovery['authorization_endpoint'],
@@ -333,11 +348,20 @@ def callback(event, context):
         f'Expires={claims["exp"]}',
     ]
 
+    usernames = bytearray.fromhex(state.split('_')[1]).split(',')
+
+    query_params = '&'.join([
+        f'username={username}'
+        for username in usernames
+    ]
+
+    redirect_uri = f'{os.environ["SELF_DOMAIN"]}?{query_params}'
+
     return {
         'statusCode': 302,
         'headers': {
             'Content-Type': 'text/plain',
-            'Location': os.environ['SELF_DOMAIN'],
+            'Location': redirect_uri,
             'Set-Cookie': '; '.join(set_cookies),
         },
         'body': 'Redirecting to application index.',
@@ -450,20 +474,20 @@ def terminate(event, context):
         )
         return error(400, 'Invalid body format. Expected JSON')
         
-    username = body_json.get('username')
+    usernames = body_json.get('usernames', [])
 
     selected = body_json.get('selected', [])
 
-    if username is None:
+    if len(usernames) == 0:
         log(
             'Request sent to terminate endpoint with missing username',
             logging.ERROR,
             actor=actor,
         )
-        return error(400, 'Missing `username` field')
+        return error(400, 'Missing `usernames` field')
 
     log(
-        f'Request to terminate sessions for {username} by {actor}',
+        f'Request to terminate sessions for {usernames} by {actor}',
         logging.WARNING,
         actor=actor,
     )
@@ -478,17 +502,19 @@ def terminate(event, context):
 
     results = []
 
-    for rp, job in jobs.items():
-        result = job(username)
+    for username in usernames:
+        for rp, job in jobs.items():
+            result = job(username)
 
-        results.append(sesinv.messages.Status(
-            affected_rp=rp,
-            current_state=result.new_state,
-            output=result.output,
-            error=result.error,
-        ))
+            results.append(sesinv.messages.Status(
+                affected_user=username,
+                affected_rp=rp,
+                current_state=result.new_state,
+                output=result.output,
+                error=result.error,
+            ))
 
-    result = sesinv.messages.Result(results)
+        result = sesinv.messages.Result(results)
 
     log(
         f'Terminated sessions for {username} by {actor}',

@@ -18,6 +18,7 @@ class Error:
 
 @dataclass
 class Status:
+    affected_user: str
     affected_rp: SupportedReliantParties
     current_state: TerminationState
     output: types.Optional[str]
@@ -25,6 +26,7 @@ class Status:
 
     def to_json(self) -> dict:
         return {
+            'affectedUser': self.affected_user,
             'affectedRP': self.affected_rp.value,
             'currentState': self.current_state.value,
             'output': self.output,

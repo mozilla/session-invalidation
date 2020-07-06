@@ -26,7 +26,13 @@ const TerminationForm = {
   name: 'TerminationForm',
   template: `
     <div>
-      <input v-model="username" id="username" placeholder="username@mozilla.com" type="text" />
+      <input
+        v-model="usernameList"
+        id="username"
+        v-bind:value="{usernames}"
+        placeholder="username1@mozilla.com,username2@mozilla.com"
+        type="text"
+      />
       <table id="toggles">
         <tr>
           <th>Reliant Party</th>
@@ -42,8 +48,9 @@ const TerminationForm = {
       <input v-on:click="submitJob" id="terminate" value="Terminate" type="button" />
     </div>
   `,
+  props: ['usernames'],
   data: () => ({
-    username: '',
+    usernameList: '',
     supportedRPs: {
       [RP_SSO]: { repr: 'SSO', enabled: true },
       [RP_GSUITE]: { repr: 'GSuite', enabled: true },
@@ -64,8 +71,14 @@ const TerminationForm = {
         }
       }
 
+      let usernames = []
+
+      for (const username of this.usernameList.split(',')) {
+        usernames.push(username.trim())
+      }
+
       this.$root.$emit('TerminateRequestSent', {
-        username: this.username,
+        usernames,
         selected,
       })
     }
@@ -133,11 +146,10 @@ const TerminationResults = {
     representation(state) {
       return STATE_REPRESENTATIONS[state]
     },
-  },
-  mounted() {
-    this.$root.$on('TerminationComplete', (username, jsonData) => {
+
+    job(result) {
       let job = {
-        username: username,
+        username: result['affectedUser'],
         ssoState: STATE_NOT_MODIFIED,
         gsuiteState: STATE_NOT_MODIFIED,
         slackState: STATE_NOT_MODIFIED,
@@ -145,14 +157,7 @@ const TerminationResults = {
         gcpState: STATE_NOT_MODIFIED,
       }
 
-      const error = jsonData['error']
-
-      if (typeof error !== 'undefined' && error !== null) {
-        this.$root.$emit('GotOutput', {error})
-        return
-      }
-
-      for (const result of jsonData['results']) {
+      for (const result of results) {
         if (result['affectedRP'] === RP_SSO) {
           job.ssoState = result['currentState']
         } else if (result['affectedRP'] === RP_GSUITE) {
@@ -173,7 +178,33 @@ const TerminationResults = {
         }
       }
 
-      this.userStates.push(job)
+      return job
+    },
+  },
+  mounted() {
+    this.$root.$on('TerminationComplete', (jsonData) => {
+      const error = jsonData['error']
+
+      if (typeof error !== 'undefined' && error !== null) {
+        this.$root.$emit('GotOutput', {error})
+        return
+      }
+
+      let jobs = {}
+
+      for (const result of jsonData['results']) {
+        const username = result['affectedUser']
+
+        if (username in jobs) {
+          jobs[username].push(job(result))
+        } else {
+          jobs[username] = [job(result)]
+        }
+      }
+
+      for (const [_username, job] of Object.entries(jobs)) {
+        this.userStates.push(job)
+      }
     })
   }
 }
@@ -215,30 +246,31 @@ const StatusMessageList = {
 const Application = {
   template: `
     <div>
-      <TerminationForm></TerminationForm>
+      <TerminationForm v-bind:usernames={usernames}></TerminationForm>
       <TerminationResults></TerminationResults>
       <StatusMessageList></StatusMessageList>
     </div>
   `,
+  props: ['usernames'],
   components: {
     TerminationForm,
     TerminationResults,
     StatusMessageList,
   },
   mounted() {
-    this.$root.$on('TerminateRequestSent', ({username, selected}) => {
+    this.$root.$on('TerminateRequestSent', ({usernames, selected}) => {
       fetch(TERMINATE_ENDPT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username,
+          usernames,
           selected
         }),
       })
       .then((response) => response.json())
-      .then((data) => this.$root.$emit('TerminationComplete', username, data))
+      .then((data) => this.$root.$emit('TerminationComplete', data))
     })
   },
 }
