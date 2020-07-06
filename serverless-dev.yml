@@ -49,7 +49,7 @@ resources:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: session-invalidation-static-content
-        AccessControl: Private
+        AccessControl: PublicRead
     SQSToMozDef:
       Type: AWS::SQS::Queue
       Properties:
@@ -108,6 +108,10 @@ package:
     - sesinv/**
     - lib/**
 functions:
+  echo:
+    handler: lambda.echo
+    events:
+      - http: get /echo
   index:
     handler: lambda.index
     events:
