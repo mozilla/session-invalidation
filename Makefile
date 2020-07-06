@@ -44,8 +44,8 @@ teardown-deploy: clean delete-static-content delete-ssm-parameter
 domain: nodejs-requirements
 	serverless create_domain
 
-deploy-dev: domain serverless-dev deploy-functions upload-static-content
+deploy-dev: serverless-dev domain deploy-functions upload-static-content
 	rm serverless.yml
 
-deploy-prod: domain serverless-prod deploy-functions upload-static-content
+deploy-prod: serverless-prod domaindeploy-functions upload-static-content
 	rm serverless.yml
