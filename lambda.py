@@ -211,9 +211,9 @@ def index(event, context):
                 actor=actor,
             )
 
-            index_page = static_content('index.html').format(
-                f'[{", ".join(usernames)}]',
-            )
+            index_page = static_content('index.html')\
+                .decode('utf-8')\
+                .format(f'[{", ".join(usernames)}]')
 
             return {
                 'statusCode': 200,
