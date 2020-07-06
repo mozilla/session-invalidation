@@ -355,7 +355,7 @@ def callback(event, context):
     query_params = '&'.join([
         f'username={username}'
         for username in usernames
-    ]
+    ])
 
     redirect_uri = f'{os.environ["SELF_DOMAIN"]}?{query_params}'
 
