@@ -6,6 +6,7 @@ provider:
   region: us-west-2
   environment:
     SELF_DOMAIN: 'https://${self:custom.customDomain.domainName}'
+    STATIC_CONTENT_BUCKET_NAME: 'session-invalidation-static-content-prod'
     OIDC_CLIENT_ID: 'wX5uKEP7oV4wgxf0B3USOrDQ5kgHFda0'
     OIDC_DISCOVERY_URI: 'https://auth.mozilla.auth0.com/.well-known/openid-configuration'
     OIDC_SCOPES: 'openid profile email'
@@ -48,8 +49,8 @@ resources:
     StaticContentBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: session-invalidation-static-content
-        AccessControl: PublicRead
+        BucketName: ${env:STATIC_CONTENT_BUCKET_NAME}
+        AccessControl: Private
     SQSToMozDef:
       Type: AWS::SQS::Queue
       Properties:

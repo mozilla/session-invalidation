@@ -91,6 +91,7 @@ All of the non-secret configuration for the application is stored in the
 | Variable | Description | Dev Value | Prod Value |
 | -------- | ----------- | --------- | ---------- |
 | `SELF_DOMAIN` | Configured under `custom.customDomain.domainName` at the bottom of the file and is the domain name to which your TLS certificate is assigned. | `https://${self:custom.customDomain.domainName}` | `https://${self:custom.customDomain.domainName}` |
+| `STATIC_CONTENT_BUCKET_NAME` | The name of the S3 bucket to store static content in, depending on the deployment environment | `session-invalidation-static-content-dev` | `session-invalidation-static-content-prod` |
 |  `OIDC_CLIENT_ID` | The client ID provided to you by your OIDC OP. | `M6lxk8phwDaqH4gECMWDLxKxxZwJcDI7` | `wX5uKEP7oV4wgxf0B3USOrDQ5kgHFda0` |
 | `OIDC_DISCOVERY_URI` | The URI pointing to the `openid-configuration` file served by your OIDC OP. | `https://auth-dev.mozilla.auth0.com/.well-known/openid-configuration` | `https://auth.mozilla.auth0.com/.well-known/openid-configuration` |
 | `OIDC_SCOPES` | Are the (space separated) scope names required by the application and likely do not need to be changed. | `openid profile email` | `openid profile email` |

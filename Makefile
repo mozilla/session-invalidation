@@ -28,8 +28,11 @@ serverless-prod:
 deploy-functions: requirements-deploy 
 	./scripts/deploy-functions.sh
 
-upload-static-content:
-	./scripts/upload-static-content.sh
+upload-static-content-dev:
+	BUCKET_SUFFIX="dev" ./scripts/upload-static-content.sh
+
+upload-static-content-prod:
+	BUCKET_SUFFIX="prod" ./scripts/upload-static-content.sh
 
 delete-static-content:
 	./scripts/delete-static-content.sh
@@ -44,8 +47,8 @@ teardown-deploy: clean delete-static-content delete-ssm-parameter
 domain: nodejs-requirements
 	serverless create_domain
 
-deploy-dev: serverless-dev domain deploy-functions upload-static-content
+deploy-dev: serverless-dev domain deploy-functions upload-static-content-dev
 	rm serverless.yml
 
-deploy-prod: serverless-prod domaindeploy-functions upload-static-content
+deploy-prod: serverless-prod domaindeploy-functions upload-static-content-prod
 	rm serverless.yml
