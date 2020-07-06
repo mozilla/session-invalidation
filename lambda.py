@@ -15,7 +15,6 @@ import boto3
 import sesinv
 
 
-STATIC_CONTENT_BUCKET_NAME = 'session-invalidation-static-content'
 SECRETS_SSM_PARAMETER = 'session-invalidation-secrets'
 
 USER_SESSION_COOKIE_KEY = 'user-session'
@@ -74,24 +73,6 @@ def log(message, level=logging.DEBUG, actor=None, username=None, result=None):
         QueueUrl=os.environ['SQS_QUEUE_URL'],
         MessageBody=json.dumps(message),
     )
-
-
-def static_content(filename):
-    '''Load a static file from S3 and save it to the /tmp directory.
-    On future requests for the same file, it will be loaded from disk.
-    '''
-
-    s3 = boto3.resource('s3')
-    static_content = s3.Bucket(STATIC_CONTENT_BUCKET_NAME)
-
-    file_path = f'/tmp/{filename}'
-
-    if not os.path.isfile(file_path):
-        with open(file_path, 'wb') as f:
-            static_content.download_fileobj(filename, f)
-
-    with open(file_path, 'rb') as f:
-        return f.read()
 
 
 def load_config():
@@ -162,6 +143,26 @@ def load_config():
     })
 
     return config
+
+
+def static_content(filename):
+    '''Load a static file from S3 and save it to the /tmp directory.
+    On future requests for the same file, it will be loaded from disk.
+    '''
+
+    config = load_config()
+
+    s3 = boto3.resource('s3')
+    static_content = s3.Bucket(config['STATIC_CONTENT_BUCKET_NAME'])
+
+    file_path = f'/tmp/{filename}'
+
+    if not os.path.isfile(file_path):
+        with open(file_path, 'wb') as f:
+            static_content.download_fileobj(filename, f)
+
+    with open(file_path, 'rb') as f:
+        return f.read()
 
 
 def authenticated_user_email(cookie_header: str) -> types.Optional[str]:
