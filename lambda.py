@@ -199,6 +199,8 @@ def index(event, context):
 
     usernames = query_params.get('username', [])
 
+    username_strs = [f"'{username}'" for username in usernames]
+
     cookie_str = event.get('headers', {}).get('cookie', '')
 
     try:
@@ -213,7 +215,7 @@ def index(event, context):
 
             index_page = static_content('index.html')\
                 .decode('utf-8')\
-                .format(f'[{", ".join(usernames)}]')
+                .format(f'[{", ".join(username_strs)}]')
 
             return {
                 'statusCode': 200,
