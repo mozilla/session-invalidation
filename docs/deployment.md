@@ -192,35 +192,6 @@ requisite environment variables with `GSUITE_JSON_KEY_FILE` set to
 `./gsuite-key.jsoon` and the deployment will be able to re-create the SSM
 parameter.
 
-### S3 Bucket Management
-
-In the case that the Session Invalidation application has been deployed to
-a development environment under one of the accounts you use and you then
-wish to deploy to production, some extra care must be taken regarding
-the S3 bucket hosting static content.  Because S3 buckets are global across
-accounts, deploying first to a dev environment and then to prod will result
-in an error saying the bucket already exists.  The quickest and easiest way
-to deal with this is to comment out the resource definition for the bucket
-from `serverless.yml` so that it reads like so.
-
-```yml
-resources:
-  Resources:
-#    StaticContentBucket:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: session-invalidation-static-content
-#        AccessControl: Private
-```
-
-This will prevent serverless from trying and failing to re-create the bucket.
-In this sort of scenario, this behaviour is acceptable as the bucket in both
-environments will contain the same files.
-
-Another way of resolving this would be to delete the bucket before running the
-deployment process, however this has the drawback that the re-creation of
-the bucket could take over an hour on AWS' side.
-
 ## Deploying
 
 Once you have:
