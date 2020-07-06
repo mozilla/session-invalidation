@@ -95,6 +95,7 @@ def load_config():
     # function is deployed.
     non_secret_cfg_keys = [
         'SELF_DOMAIN',
+        'STATIC_CONTENT_BUCKET_NAME',
         'OIDC_CLIENT_ID',
         'OIDC_DISCOVERY_URI',
         'OIDC_SCOPES',
