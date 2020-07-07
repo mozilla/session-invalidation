@@ -52,7 +52,7 @@ const TerminationForm = {
       const uri = window.location.search.substring(1)
       const params = new URLSearchParams(uri)
 
-      return params.getAll('username')
+      return params.getAll('username').join(',')
     })(),
     supportedRPs: {
       [RP_SSO]: { repr: 'SSO', enabled: true },
@@ -150,35 +150,28 @@ const TerminationResults = {
       return STATE_REPRESENTATIONS[state]
     },
 
-    job(result) {
-      let job = {
-        username: result['affectedUser'],
+    newJob(username) {
+      return {
+        username,
         ssoState: STATE_NOT_MODIFIED,
         gsuiteState: STATE_NOT_MODIFIED,
         slackState: STATE_NOT_MODIFIED,
         awsState: STATE_NOT_MODIFIED,
         gcpState: STATE_NOT_MODIFIED,
       }
+    },
 
-      for (const result of results) {
-        if (result['affectedRP'] === RP_SSO) {
-          job.ssoState = result['currentState']
-        } else if (result['affectedRP'] === RP_GSUITE) {
-          job.gsuiteState = result['currentState']
-        } else if (result['affectedRP'] === RP_SLACK) {
-          job.slackState = result['currentState']
-        } else if (result['affectedRP'] === RP_AWS) {
-          job.awsState = result['currentState']
-        } else if (result['affectedRP'] === RP_GCP) {
-          job.gcpState = result['currentState']
-        }
-
-        if (result['output'] !== null) {
-          this.$root.$emit('GotOutput', {'output': result['output']})
-        }
-        if (result['error'] !== null) {
-          this.$root.$emit('GotOutput', {'error': result['error']})
-        }
+    updateJob(job, result) {
+      if (result['affectedRP'] === RP_SSO) {
+        job.ssoState = result['currentState']
+      } else if (result['affectedRP'] === RP_GSUITE) {
+        job.gsuiteState = result['currentState']
+      } else if (result['affectedRP'] === RP_SLACK) {
+        job.slackState = result['currentState']
+      } else if (result['affectedRP'] === RP_AWS) {
+        job.awsState = result['currentState']
+      } else if (result['affectedRP'] === RP_GCP) {
+        job.gcpState = result['currentState']
       }
 
       return job
@@ -196,16 +189,25 @@ const TerminationResults = {
       let jobs = {}
 
       for (const result of jsonData['results']) {
+        console.log('Inspecting result', result)
         const username = result['affectedUser']
 
-        if (username in jobs) {
-          jobs[username].push(job(result))
-        } else {
-          jobs[username] = [job(result)]
+        if (result['output'] !== null) {
+          this.$root.$emit('GotOutput', {'output': result['output']})
         }
+        if (result['error'] !== null) {
+          this.$root.$emit('GotOutput', {'error': result['error']})
+        }
+
+        if (!jobs.hasOwnProperty(username)) {
+          jobs[username] = this.newJob(username)
+        }
+
+        jobs[username] = this.updateJob(jobs[username], result)
       }
 
       for (const [_username, job] of Object.entries(jobs)) {
+        console.log('Pushing job', job)
         this.userStates.push(job)
       }
     })
