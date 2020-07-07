@@ -140,7 +140,33 @@ add a new table header element and table data cell for the table.
 ```
 
 Last, the frontend must know to look for changes to the state of your imaginary
-RP's session.  Inside the `mounted` method of the `TerminationResults` component
+RP's session.  Inside the `TerminationResults` component, there are two methods
+that must be updated.
+
+The first is the `newJob` method, which constructs a simple object that tracks
+updates to session states.  Simply add a new property to this object with the
+same name that you useed in your new `<span>` tag above.
+
+```js
+    newJob(username) {
+      return {
+        // ...
+        imaginaryState: STATE_NOT_MODIFIED,
+      }
+    }
+```
+
+The second method to update is `updateJob`, which applies changes to session
+states as results are processed.
+
+```js
+    updateJob(job, result) {
+      // ...
+    } else if (result['affectedRP'] == RP_IMAGINARY) {
+      job.imaginaryState = result['currentState']
+    }
+```
+
 you will see the definition of a variable called `job` that initializes the
 states for each RP.  Add a line to initialize a state for your new RP. Note that
 the key (left side of `:` that you use must be the same as the one you
