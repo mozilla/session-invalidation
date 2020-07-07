@@ -29,7 +29,6 @@ const TerminationForm = {
       <input
         v-model="usernameList"
         id="username"
-        v-bind:value="{usernames}"
         placeholder="username1@mozilla.com,username2@mozilla.com"
         type="text"
       />
@@ -48,9 +47,13 @@ const TerminationForm = {
       <input v-on:click="submitJob" id="terminate" value="Terminate" type="button" />
     </div>
   `,
-  props: ['usernames'],
   data: () => ({
-    usernameList: '',
+    usernameList: (() => {
+      const uri = window.location.search.substring(1)
+      const params = new URLSearchParams(uri)
+
+      return params.getAll('username')
+    })(),
     supportedRPs: {
       [RP_SSO]: { repr: 'SSO', enabled: true },
       [RP_GSUITE]: { repr: 'GSuite', enabled: true },
@@ -246,7 +249,7 @@ const StatusMessageList = {
 const Application = {
   template: `
     <div>
-      <TerminationForm v-bind:usernames={usernames}></TerminationForm>
+      <TerminationForm></TerminationForm>
       <TerminationResults></TerminationResults>
       <StatusMessageList></StatusMessageList>
     </div>
