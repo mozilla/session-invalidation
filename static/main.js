@@ -189,7 +189,6 @@ const TerminationResults = {
       let jobs = {}
 
       for (const result of jsonData['results']) {
-        console.log('Inspecting result', result)
         const username = result['affectedUser']
 
         if (result['output'] !== null) {
@@ -207,7 +206,6 @@ const TerminationResults = {
       }
 
       for (const [_username, job] of Object.entries(jobs)) {
-        console.log('Pushing job', job)
         this.userStates.push(job)
       }
     })
