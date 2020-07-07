@@ -213,16 +213,12 @@ def index(event, context):
                 actor=actor,
             )
 
-            index_page = static_content('index.html')\
-                .decode('utf-8')\
-                .format(f'[{", ".join(username_strs)}]')
-
             return {
                 'statusCode': 200,
                 'headers': {
                     'Content-Type': 'text/html',
                 },
-                'body': index_page,
+                'body': static_content('index.html'),
             }
         else:
             discovery = sesinv.oidc.discovery_document(
