@@ -54,6 +54,7 @@ if test -z "$ARN"; then
     --description "A StringList of KEY=value pairs describing secret values" \
     --type StringList \
     --value "$SECRETS" \
+    --tier Advanced \
     2> /dev/null;
 
   ARN="$(aws --output json --query "Parameter.ARN" ssm get-parameter --name $PARAMETER_NAME)"
