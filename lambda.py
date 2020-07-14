@@ -87,6 +87,7 @@ def load_config():
         'OIDC_CLIENT_SECRET',
         'SSO_CLIENT_SECRET',
         'GSUITE_PRIVATE_KEY',
+        'GCP_PRIVATE_KEY',
         'SLACK_TOKEN',
         'SIGNING_KEY_ECDSA',
     ]
@@ -118,6 +119,16 @@ def load_config():
         'SSO_USER_ENDPT',
         'SLACK_LOOKUP_USER_ENDPT',
         'SLACK_SCIM_USERS_ENDPT',
+        'GCP_ACCOUNT_TYPE',
+        'GCP_PROJECT_ID',
+        'GCP_PRIVATE_KEY_ID',
+        'GCP_CLIENT_EMAIL',
+        'GCP_CLIENT_ID',
+        'GCP_AUTH_URI',
+        'GCP_TOKEN_URI',
+        'GCP_AUTH_PROVIDER_CERT_URL',
+        'GCP_CLIENT_CERT_URL',
+        'GCP_SUBJECT',
     ]
 
     # Only load secrets from SSM if they aren't already stored in env vars.
