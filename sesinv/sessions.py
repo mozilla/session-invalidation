@@ -129,8 +129,28 @@ def configure_jobs(config: dict, selections: types.List[str]) -> JobConfig:
         configuration[SupportedReliantParties.AWS] = aws
 
     if SupportedReliantParties.GCP.value in selections:
-        gcp_token = ''
-        gcp = terminate_gcp(gcp_token)
+        # We encode the RSA private key to hex to store in SSM because the
+        # newline characters present in PEM mess with our parsing.
+        private_key = bytearray\
+            .fromhex(config['GCP_PRIVATE_KEY'])\
+            .decode('utf-8')
+
+        service_account_json_key = {
+            'type': config['GCP_ACCOUNT_TYPE'],
+            'project_id': config['GCP_PROJECT_ID'],
+            'private_key_id': config['GCP_PRIVATE_KEY_ID'],
+            'private_key': private_key,
+            'client_email': config['GCP_CLIENT_EMAIL'],
+            'client_id': config['GCP_CLIENT_ID'],
+            'auth_uri': config['GCP_AUTH_URI'],
+            'token_uri': config['GCP_TOKEN_URI'],
+            'auth_provider_x509_cert_url': config['GCP_AUTH_PROVIDER_CERT_URL'],
+            'client_x509_cert_url': config['GCP_CLIENT_CERT_URL'],
+        }
+        gcp = terminate_gcp(
+            service_account_json_key,
+            config['GCP_SUBJECT'],
+        )
 
         configuration[SupportedReliantParties.GCP] = gcp
 
@@ -374,11 +394,18 @@ def terminate_aws(acces_key_id: str, secret_key: str) -> IJob:
     return _terminate
 
 
-def terminate_gcp(token: str) -> IJob:
-    '''
+def terminate_gcp(
+    service_account_json_key: types.Dict[str, str],
+    subject: str,
+) -> IJob:
+    '''Configure a job to terminate a GCP user session.
+    
+    The `service_account_json_key` must be the JSON object produced when a
+    private key is generated for the service account created for the session
+    invalidation app by a GSuite admin.
+
+    The `subject` must be the email address of the GSuite admin that created
+    the service account and generated the private key to authenticate as it.
     '''
 
-    def _terminate(email: UserEmail) -> JobResult:
-        return JobResult(TerminationState.NOT_IMPLEMENTED)
-
-    return _terminate
+    return terminate_gsuite(service_account_json_key, subject)
