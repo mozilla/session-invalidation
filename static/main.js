@@ -58,6 +58,7 @@ const TerminationForm = {
       [RP_SSO]: { repr: 'SSO', enabled: true },
       [RP_GSUITE]: { repr: 'GSuite', enabled: true },
       [RP_SLACK]: { repr: 'Slack', enabled: true },
+      [RP_GCP]: { repr: 'GCP', enabled: true },
     },
   }),
   methods: {
