@@ -50,5 +50,5 @@ domain: nodejs-requirements
 deploy-dev: serverless-dev domain deploy-functions upload-static-content-dev
 	rm serverless.yml
 
-deploy-prod: serverless-prod domaindeploy-functions upload-static-content-prod
+deploy-prod: serverless-prod domain deploy-functions upload-static-content-prod
 	rm serverless.yml
