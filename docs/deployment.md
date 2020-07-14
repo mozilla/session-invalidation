@@ -86,7 +86,7 @@ granted to it.
 ## General Configuration
 
 All of the non-secret configuration for the application is stored in the
-`provider.environment` section of `serverless.yml`.
+`provider.environment` section of `serverless-dev.yml` and  `serverless-prod.yml`.
 
 | Variable | Description | Dev Value | Prod Value |
 | -------- | ----------- | --------- | ---------- |
@@ -125,7 +125,8 @@ All of the non-secret configuration for the application is stored in the
 | `SSO_GRANT_TYPE` | The OIDC grant type parameter required to authenticate the application to make requests to the OAuth API. | `client_credentials` | `client_credentials` |
 | `SQS_QUEUE_URL` | The URL of the [AWS SQS Queue](https://aws.amazon.com/sqs/) to which the application will write logs for consumption by MozDef.  It is generated during deployment. | `!Ref SQSToMozDef` | `!Ref SQSToMozDef` |
 
-Along with the `domainName` field at the bottom of `serverless.yml`, you will also find:
+Along with the `domainName` field at the bottom of `serverless-dev.yml` and
+`serverless-prod.yml`, you will also find:
 
 | Variable | Description | Dev Value | Prod Value |
 | -------- | ----------- | --------- | ---------- |
@@ -218,9 +219,9 @@ and the deployment will be able to re-create the SSM parameter.
 
 Once you have:
 
-1. A TLS certificate verified for the domain configured in `serverless.yml`
+1. A TLS certificate verified for the domain configured in the serverless files.
 2. Run `serverless create_domain` to create the domain you configured.
-3. Configuration set up correctly in `serverless.yml`
+3. Configuration set up correctly in the serverless files
 4. NodeJS, NPM and the serverless tools all installed
 5. Authenticated to AWS and
 6. Obtained all of the secrets you need
