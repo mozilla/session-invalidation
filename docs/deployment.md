@@ -105,6 +105,16 @@ All of the non-secret configuration for the application is stored in the
 | `GSUITE_AUTH_PROVIDER_CERT_URL` | The value corresponding to the `"auth_provider_x509_cert_url"` field in the service account JSON key. | `https://www.googleapis.com/oauth2/v1/certs` | `https://www.googleapis.com/oauth2/v1/certs` |
 | `GSUITE_CLIENT_CERT_URL` | The value corresponding to the `"client_x509_cert_url"` field in the service account JSON key. | `https://www.googleapis.com/robot/v1/metadata/x509/sesinv-admin-822%40session-invalidation-test.iam.gserviceaccount.com` | `https://www.googleapis.com/robot/v1/metadata/x509/mozilla-session-invalidation%40mozilla-session-invalidation.iam.gserviceaccount.com` | 
 | `GSUITE_SUBJECT` | The email address of the GSuite admin that created your project's service account. | `gads_admin_bot@test.mozilla.com` | `gads_admin_bot@mozilla.com` |
+| `GCP_ACCOUNT_TYPE` | The value corresponding to the `"type"` field in the service account JSON key. | `service_account` | `service_account` |
+| `GCP_PROJECT_ID` | The value corresponding to the `"project_id"` field in the service account JSON key. | N/A | `mozilla-session-invalidate` |
+| `GCP_PRIVATE_KEY_ID` | The value corresponding to the `"private_key_id"` field in the service account JSON key. | N/A | `89ea9baeec37381d10cf257a6fffe011033afa99` |
+| `GCP_CLIENT_EMAIL` | The value corresponding to the `"client_id"` field in the service account JSON key. | N/A | `service-account@mozilla-session-invalidate.iam.gserviceaccount.com` |
+| `GCP_CLIENT_ID` | The value corresponding to the `"client_email"` field in the service account JSON key. | N/A | `100531611871034342416` |
+| `GCP_AUTH_URI` | The value corresponding to the `"auth_uri"` field in the service account JSON key. | N/A | `https://accounts.google.com/o/oauth2/auth` |
+| `GCP_TOKEN_URI` | The value corresponding to the `"token_uri"` field in the service account JSON key. | N/A | `https://oauth2.googleapis.com/token` |
+| `GCP_AUTH_PROVIDER_CERT_URL` | The value corresponding to the `"auth_provider_x509_cert_url"` field in the service account JSON key. | N/A | `https://www.googleapis.com/oauth2/v1/certs` |
+| `GCP_CLIENT_CERT_URL` | The value corresponding to the `"client_x509_cert_url"` field in the service account JSON key. | N/A | `https://www.googleapis.com/robot/v1/metadata/x509/service-account%40mozilla-session-invalidate.iam.gserviceaccount.com` | 
+| `GCP_SUBJECT` | The email address of the GSuite admin that created your project's service account. | N/A | `afrank@gcp.infra.mozilla.com` |
 | `SLACK_LOOKUP_USER_ENDPT` | Must point to Slack's `users.lookupUserByEmail` endpoint. | `https://api.slack.com/methods/users.lookupByEmail` |  `https://api.slack.com/methods/users.lookupByEmail` |
 | `SLACK_SCIM_USERS_ENDPT` | Must point to Slack's  SCIM Users API endpoint. | `https://api.slack.com/scim` | `https://api.slack.com/scim` |
 | `SSO_CLIENT_ID` | The client ID of the SSO (OAuth) RP. | `eJPgs0CNdtyDW0bWTMByMb3Pan1F8n6n` | `J6oOrIBEv9QtmX5HQSPJCj68sMZuwfqS` |
@@ -177,8 +187,11 @@ deployment, follow these steps.
 2. Copy the `SSO_CLIENT_SECRET` value to a file.
 3. Copy the `SLACK_TOKEN` value to a file.
 4. Copy the `GSUITE_PRIVATE_KEY` value to your clipboard.
-5. Run `scripts/create-gsuite-json-key-file.py` file as below.
-6. Run `make delete-ssm-parameter` to delete the stored secrets.
+5. Run `scripts/create-gsuite-json-key-file.py` file as below for gsuite.
+6. Run `scripts/create-gsuite-json-key-file.py` file as below for gcp.
+7. Run `make delete-ssm-parameter` to delete the stored secrets.
+
+**gsuite**
 
 ```bash
 python scripts/create-gsuite-json-key-file.py <pasted key> <path to file>
@@ -187,10 +200,19 @@ python scripts/create-gsuite-json-key-file.py <pasted key> <path to file>
 # pythoh scripts/create-gsuite-json-key-file.py ABCDEF0123...988 ./gsuite-key.json
 ```
 
+**gcp**
+
+```bash
+python scripts/create-gsuite-json-key-file.py <pasted key> <path to file>
+
+# Example
+# pythoh scripts/create-gsuite-json-key-file.py 1230DEF...CAB ./gcp-key.json
+```
+
 Now when you run `make deploy-dev` or `make deploy-prod` you can provide the
 requisite environment variables with `GSUITE_JSON_KEY_FILE` set to
-`./gsuite-key.jsoon` and the deployment will be able to re-create the SSM
-parameter.
+`./gsuite-key.json` as well as `GCP_JSON_KEY_FILE` set to `./gcp-key.json`
+and the deployment will be able to re-create the SSM parameter.
 
 ## Deploying
 
