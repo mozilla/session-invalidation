@@ -359,7 +359,9 @@ def callback(event, context):
         f'Expires={claims["exp"]}',
     ]
 
-    usernames = bytearray.fromhex(state.split('_')[1]).split(',')
+    decoded = bytearray.fromhex(state.split('_')[1])
+
+    usernames = str(decoded, 'utf-8').split(',')
 
     query_params = '&'.join([
         f'username={username}'
