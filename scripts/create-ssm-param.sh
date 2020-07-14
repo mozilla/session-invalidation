@@ -28,6 +28,11 @@ if test -z "$ARN"; then
     exit 1;
   fi
 
+  if test -z "$GCP_JSON_KEY_FILE"; then
+    >&2 echo "!!! Environment variable GCP_JSON_KEY_FILE not set !!!";
+    exit 1;
+  fi
+
   if ! test -f "$GSUITE_JSON_KEY_FILE"; then
     >&2 echo "!!! GSUITE_JSON_KEY_FILE is not a valid file path !!!";
     exit 1;
