@@ -408,4 +408,25 @@ def terminate_gcp(
     the service account and generated the private key to authenticate as it.
     '''
 
-    return terminate_gsuite(service_account_json_key, subject)
+    terminate = terminate_gsuite(service_account_json_key, subject)
+
+    def _terminate(user: Email) -> JobResult:
+        result = terminate(user)
+
+        new_error = None
+
+        if result.error is not None:
+            new_error = result.error.replace('GSuite', 'GCP', 1)
+
+        new_output = None
+
+        if result.output is not None:
+            new_output = result.output.replace('GSuite', 'GCP', 1)
+
+        return JobResult(
+            result.new_state,
+            output=new_output,
+            error=new_error,
+        )
+
+    return _terminate
