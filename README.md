@@ -43,6 +43,13 @@ documents.  By terminating a user's GSuite session, we can provent them from
 gaining further access to sensitive resources or manipulating others into
 downloading malware or submitting credentials to an attacker-owned destination.
 
+### GCP
+
+Invalidating user sessions works exactly the same way as it does for GSuite,
+and even relies on the same code.  The sesson invalidation app has distinct
+configuration parameters for GCP so that one can terminate sessions for GSuite
+users in one organization and GCP users in a separate dedicate organization.
+
 ### Slack
 
 Where Slack is used by organizations for sensitive communications and file
