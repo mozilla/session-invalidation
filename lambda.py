@@ -356,7 +356,7 @@ def callback(event, context):
 
     set_cookies = [
         f'{USER_SESSION_COOKIE_KEY}={user_token}',
-        f'Expires={claims["exp"]}',
+        f'Max-Age={15 * 60}',
     ]
 
     decoded = bytearray.fromhex(state.split('_')[1])
