@@ -410,7 +410,7 @@ def terminate_gcp(
 
     terminate = terminate_gsuite(service_account_json_key, subject)
 
-    def _terminate(user: Email) -> JobResult:
+    def _terminate(user: UserEmail) -> JobResult:
         result = terminate(user)
 
         new_error = None
