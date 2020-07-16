@@ -50,7 +50,11 @@ type Parameters = {
 
 The `username` query string parameter can be provided multiple times and each
 value provided will be pre-loaded into the username input field as a comma-
-separated list.
+separated list. Exmaple:
+
+```
+https://session-invalidation.website.com?username=user1@website.com&username=user2@website.com
+```
 
 ### Response
 
