@@ -4,6 +4,7 @@ provider:
   runtime: python3.8
   stage: dev
   region: us-west-2
+  timeout: 30
   environment:
     SELF_DOMAIN: 'https://${self:custom.customDomain.domainName}'
     STATIC_CONTENT_BUCKET_NAME: 'session-invalidation-static-content-dev'
